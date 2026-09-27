@@ -13,7 +13,7 @@ button{font:inherit;cursor:pointer}.brush,.primary{border:0;border-radius:13px;p
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.card{background:#fff;border:1px solid #dce5f1;border-radius:18px;overflow:hidden}
 .thumb{aspect-ratio:1.1;background:#f5f8fc;display:grid;place-items:center;position:relative}.thumb svg{width:94%;height:94%}
 .meta{padding:10px}.title{font-weight:900}.sub{font-size:12px;color:#69758a;margin-top:3px}.badge,.lock{position:absolute;background:#fff;border:1px solid #dbe4ef;border-radius:10px;padding:5px 8px;font-weight:900}.badge{top:8px;left:8px}.lock{font-size:28px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
-.card.locked .thumb{filter:grayscale(.7);opacity:.75}.card button{margin:0 10px 11px;width:calc(100% - 20px);border:0;border-radius:12px;padding:10px;font-weight:900;background:#eaf1fb}
+.card.locked .thumb{opacity:.68}.card button{margin:0 10px 11px;width:calc(100% - 20px);border:0;border-radius:12px;padding:10px;font-weight:900;background:#eaf1fb;color:#172033}.card button.primary{background:#172033;color:#fff}
 .gameTop{margin-bottom:10px}.back{border:0;background:#fff;border:1px solid #dbe4ef;border-radius:11px;padding:9px 12px;font-weight:900}
 .numberBtns{display:flex;gap:6px;overflow:auto;padding:5px 0 10px}.num{min-width:42px;border:1px solid #d8e2ef;background:#fff;border-radius:10px;padding:8px;font-weight:900}.num.active{background:#172033;color:#fff}.num.done{background:#dff6e6}
 .canvas{background:#fff;border:1px solid #dce5ef;border-radius:20px;padding:8px}.canvas svg{width:100%;display:block;touch-action:manipulation}
@@ -75,12 +75,18 @@ const save=()=>localStorage.setItem("lixColorV10",JSON.stringify(state));
 const toast=x=>{const t=document.getElementById("toast");t.textContent=x;t.style.display="block";setTimeout(()=>t.style.display="none",1500)};
 const colors={1:"#ffd54f",2:"#ff9f80",3:"#80cbc4",4:"#81d4fa",5:"#b39ddb",6:"#a5d6a7",7:"#f48fb1"};
 function thumb(p){
-  return `<svg viewBox="0 0 200 200">${p.regions.map(r=>`<path d="${r.d}" fill="#dfe6ef" stroke="#fff" stroke-width="1"/>`).join("")}</svg>`;
+  return `<svg viewBox="0 0 200 200">${p.regions.map(r=>`<path d="${r.d}" fill="#ffd54f" stroke="#fff" stroke-width="1"/>`).join("")}</svg>`;
 }
 function home(){
   let cards="";
   for(let i=1;i<=3;i++){let p=pictureData[i],locked=i>state.stage,done=!!state.completed["normal"+i];cards+=`<div class="card ${locked?"locked":""}"><div class="thumb">${thumb(p)}${locked?'<div class="lock">🔒</div>':""}${done?'<div class="badge">✓ Completed</div>':""}</div><div class="meta"><div class="title">Stage ${i} · ${p.title}</div><div class="sub">${locked?"Locked":"Reward "+p.reward+" Coins"}</div></div><button class="${locked?"":"primary"} data-i="${i}">${locked?"Locked":"Play"}</button></div>`}
-  document.getElementById("app").innerHTML=`<div class="top"><div class="logo">Lix Color</div><div class="coins">🪙 ${state.coins}</div></div><div class="grid">${cards}</div>`;
+  document.getElementById("app").innerHTML=`<div class="top"><div class="logo">Lix Color</div><div class="coins">🪙 ${state.coins}</div></div>
+<div class="tabs">
+<button class="tab active">Normal</button>
+<button class="tab" onclick="showCategory('premium')">Premium</button>
+<button class="tab" onclick="showCategory('weekly')">Weekly</button>
+</div>
+<div class="grid">${cards}</div>`;
   document.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{let i=+b.dataset.i;if(i<=state.stage)start(i);else toast("Locked")});
 }
 function start(i){
@@ -110,6 +116,82 @@ function finish(g){
   state.coins+=pictureData[g.i].reward;state.completed[g.key]=true;delete state.progress[g.key];
   if(g.i===state.stage)state.stage=Math.min(3,state.stage+1);save();home();toast("Completed! +"+pictureData[g.i].reward+" Coins");
 }
+
+function showCategory(cat){
+  if(cat==="premium"){ renderPremium(); return; }
+  if(cat==="weekly"){ renderWeekly(); return; }
+}
+function renderPremium(){
+  const cards=[];
+  for(let i=1;i<=20;i++){
+    const open=state.stage>=15 && !!state.premiumOpened[i];
+    const cost=[5000,7500,10000,12500,15000,20000,25000,30000,40000,50000,60000,75000,90000,110000,135000,165000,200000,250000,300000,400000][i-1];
+    const unlocked=state.stage>=15;
+    const p=pictureData[((i-1)%3)+1];
+    cards.push(`<div class="card ${open?"":"locked"}"><div class="thumb">${thumb(p)}${!open?'<div class="lock">🔒</div>':""}</div><div class="meta"><div class="title">Premium ${i}</div><div class="sub">${!unlocked?"Unlocks at Stage 15":open?"Unlocked · Entry "+cost.toLocaleString():"Entry "+cost.toLocaleString()+" Coins"}</div></div><button class="${open?"primary":""}" data-prem="${i}">${open?"Play":unlocked?"Open":"Locked"}</button></div>`);
+  }
+  document.getElementById("app").innerHTML=`<div class="top"><div class="logo">Lix Color</div><div class="coins">🪙 ${state.coins}</div></div>
+  <div class="tabs"><button class="tab" onclick="home()">Normal</button><button class="tab active">Premium</button><button class="tab" onclick="renderWeekly()">Weekly</button></div>
+  <div class="grid">${cards.join("")}</div>`;
+  document.querySelectorAll("[data-prem]").forEach(b=>b.onclick=()=>premiumClick(+b.dataset.prem));
+}
+function premiumClick(i){
+  if(state.stage<15)return toast("Unlocks at Stage 15");
+  const costs=[5000,7500,10000,12500,15000,20000,25000,30000,40000,50000,60000,75000,90000,110000,135000,165000,200000,250000,300000,400000];
+  if(!state.premiumOpened[i]){
+    if(state.coins<costs[i-1])return toast("Not enough Coins");
+    state.coins-=costs[i-1];state.premiumOpened[i]=true;save();renderPremium();return;
+  }
+  start(i);
+}
+function renderWeekly(){
+  const cards=[];
+  for(let i=1;i<=52;i++){
+    const current=i===1, open=current && state.stage>=30 && state.weeklyOpened;
+    const locked=state.stage<30 || !current;
+    const label=state.stage<30?"Unlocks at Stage 30":current?(state.weeklyOpened?"Unlocked · 3,000 Coins":"Entry 3,000 Coins"):`Week ${i} · Locked`;
+    const p=pictureData[((i-1)%3)+1];
+    cards.push(`<div class="card ${open?"":"locked"}"><div class="thumb">${thumb(p)}${!open?'<div class="lock">🔒</div>':""}</div><div class="meta"><div class="title">Weekly ${i}</div><div class="sub">${label}</div></div><button class="${open?"primary":""}" data-week="${i}">${open?"Play":(!locked&&current)?"Open":"Locked"}</button></div>`);
+  }
+  document.getElementById("app").innerHTML=`<div class="top"><div class="logo">Lix Color</div><div class="coins">🪙 ${state.coins}</div></div>
+  <div class="tabs"><button class="tab" onclick="home()">Normal</button><button class="tab" onclick="renderPremium()">Premium</button><button class="tab active">Weekly</button></div>
+  <div class="grid">${cards.join("")}</div>`;
+  document.querySelectorAll("[data-week]").forEach(b=>b.onclick=()=>weeklyClick(+b.dataset.week));
+}
+function weeklyClick(i){
+  if(state.stage<30)return toast("Unlocks at Stage 30");
+  if(i!==1)return toast("This week is not available yet");
+  if(!state.weeklyOpened){
+    if(state.coins<3000)return toast("3,000 Coins required");
+    state.coins-=3000;state.weeklyOpened=true;save();
+  }
+  startWeekly();
+}
+function startWeekly(){
+  const key="weekly1",old=state.progress[key];
+  const p=pictureData[3];
+  const regions=old?old.regions:p.regions.map(r=>({...r,done:false}));
+  drawWeekly({key,regions,current:old?.current||1});
+}
+function drawWeekly(g){
+  const nums=[...new Set(g.regions.map(r=>r.n))].sort((a,b)=>a-b);
+  const buttons=nums.map(n=>{const rem=g.regions.filter(r=>r.n===n&&!r.done).length;return `<button class="num ${g.current===n?"active":""} ${rem===0?"done":""}" data-n="${n}">${n}<small style="display:block">${rem}</small></button>`}).join("");
+  const svg=g.regions.map((r,i)=>`<g><path class="region" d="${r.d}" fill="${r.done?colors[r.n]:"#e5ebf2"}" data-i="${i}" data-n="${r.n}"/><text class="label" x="${r.x}" y="${r.y}">${r.done?"":r.n}</text></g>`).join("");
+  document.getElementById("app").innerHTML=`<div class="gameTop"><button class="back" id="back">← Back</button><b>Weekly · ${g.regions.filter(r=>r.done).length}/${g.regions.length}</b><div class="coins">🪙 ${state.coins}</div></div><div class="numberBtns">${buttons}</div><div class="canvas"><svg viewBox="0 0 200 200">${svg}</svg></div><div class="hint">Weekly: choose any number at any time. Progress saves automatically.</div>`;
+  document.getElementById("back").onclick=()=>{persistWeekly(g);renderWeekly()};
+  document.querySelectorAll(".num").forEach(b=>b.onclick=()=>{g.current=+b.dataset.n;persistWeekly(g);drawWeekly(g)});
+  document.querySelectorAll(".region").forEach(e=>e.onclick=()=>tapWeekly(g,+e.dataset.i,+e.dataset.n));
+}
+function persistWeekly(g){state.progress[g.key]={regions:g.regions,current:g.current};save()}
+function tapWeekly(g,i,n){
+  const r=g.regions[i];if(r.done)return;if(n!==g.current)return toast("Wrong number");
+  r.done=true;persistWeekly(g);
+  if(g.regions.every(x=>x.done)){
+    state.coins+=4000;state.completed[g.key]=true;delete state.progress[g.key];state.weeklyOpened=false;save();renderWeekly();toast("+4,000 Coins");return;
+  }
+  drawWeekly(g);
+}
+
 home();
 </script>
 </body></html>
