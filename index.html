@@ -1,217 +1,225 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#0f172a">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Color by Number</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#eef2f7;color:#111827;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-button{font:inherit;border:0;cursor:pointer}
-.app{max-width:1050px;margin:auto;padding:16px}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-.logo{font-weight:900;font-size:24px}.subtitle{font-size:12px;color:#64748b;margin-top:3px}
-.coins{background:#111827;color:white;border-radius:999px;padding:10px 14px;font-weight:900}
-.panel{background:white;border:1px solid #e2e8f0;border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 4px 16px rgba(15,23,42,.04)}
-.row{display:flex;gap:10px;align-items:center;justify-content:space-between}
-.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.stat{background:#f8fafc;border-radius:14px;padding:12px}.stat small{display:block;color:#64748b}.stat b{font-size:20px}
-.brush{display:flex;align-items:center;gap:12px}.brushIcon{font-size:42px}.grow{flex:1}
-.upgrade{background:#111827;color:white;padding:10px 14px;border-radius:12px;font-weight:800}.upgrade:disabled{opacity:.45;cursor:not-allowed}
+body{margin:0;font-family:Arial,sans-serif;background:#101522;color:white;min-height:100vh}
+.header{padding:14px;display:flex;justify-content:space-between;align-items:center;background:#171e30;border-bottom:1px solid #293149}
+.logo{font-size:21px;font-weight:800}.stats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.stat{background:#222b40;padding:7px 10px;border-radius:10px;font-size:12px}
+.container{max-width:900px;margin:auto;padding:18px}
+h1{text-align:center;margin:10px 0 5px}.subtitle{text-align:center;color:#9ba7bd;margin-bottom:20px}
+.pictures{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.card{background:#1a2234;border:1px solid #2a3550;border-radius:16px;padding:12px;cursor:pointer;transition:.2s}
+.card:hover{transform:translateY(-3px);border-color:#5c7cff}
+.preview{height:120px;border-radius:12px;background:#303b55;display:flex;align-items:center;justify-content:center;font-size:55px}
+.card h3{margin:10px 0 4px}.card p{margin:4px 0;color:#9ba7bd;font-size:13px}.reward{color:#ffd34d;font-weight:bold}
 .hidden{display:none!important}
-.sectionTitle{font-size:18px;font-weight:900;margin:18px 2px 10px}
-.images{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.imageCard{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:10px}
-.preview{height:130px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#dbeafe,#fce7f3);font-size:42px}
-.imageCard h3{margin:10px 0 4px}.muted{color:#64748b;font-size:12px}.play{width:100%;margin-top:10px;background:#111827;color:white;border-radius:11px;padding:10px;font-weight:800}
-.lock{background:#e2e8f0;color:#64748b}
-.gameHead{display:flex;align-items:center;gap:10px}.back{background:#e2e8f0;padding:9px 12px;border-radius:10px;font-weight:800}
-.target{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#0f172a;color:white;border-radius:14px;padding:13px;margin-top:12px}
-.targetNum{font-size:28px;font-weight:1000}.remaining{font-size:13px}.remaining b{font-size:20px}
-.canvasWrap{margin-top:12px;background:white;border:1px solid #e2e8f0;border-radius:18px;padding:8px;overflow:auto}
-.canvas{display:grid;grid-template-columns:repeat(20,1fr);gap:2px;min-width:340px;aspect-ratio:1/1;background:#cbd5e1;padding:2px;border-radius:12px}
-.cell{position:relative;border-radius:2px;display:grid;place-items:center;font-size:10px;font-weight:900;color:#334155;background:#f8fafc;min-width:0;user-select:none}
-.cell.done{color:transparent}
-.cell.wrong{animation:shake .2s linear}
-.cell.target{outline:2px solid #fff;box-shadow:0 0 0 2px #111827;z-index:2}
-@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
-.completeBanner{margin-top:12px;text-align:center;background:#dcfce7;border:1px solid #86efac;border-radius:14px;padding:14px;font-weight:900}
-.nums{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.numChip{padding:7px 9px;border-radius:9px;background:#e2e8f0;font-size:12px;font-weight:900}.numChip.active{background:#111827;color:white}.numChip.locked{opacity:.4}
-.note{font-size:12px;color:#64748b;margin-top:8px}
-@media(max-width:720px){.images{grid-template-columns:1fr 1fr}.statrow{grid-template-columns:1fr 1fr 1fr}.canvas{min-width:310px}}
-@media(max-width:480px){.app{padding:10px}.images{grid-template-columns:1fr}.top{align-items:flex-start}.brush{align-items:flex-start;flex-wrap:wrap}}
+.game-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.back{background:#252f46;border:0;color:white;padding:10px 14px;border-radius:10px;cursor:pointer}
+.number-info{text-align:center;flex:1}.active-number{font-size:28px;font-weight:900}.remaining{color:#aeb8cc;font-size:13px}
+.progress{height:8px;background:#273148;border-radius:10px;overflow:hidden;margin:10px 0 16px}
+.progress-bar{height:100%;width:0%;background:#6c82ff;transition:.2s}
+.board{width:min(92vw,650px);aspect-ratio:1;margin:auto;display:grid;grid-template-columns:repeat(20,1fr);gap:2px;background:#080c14;padding:3px;border-radius:14px}
+.cell{border-radius:2px;background:#d7dbe4;display:flex;align-items:center;justify-content:center;font-size:9px;color:#222;font-weight:bold;cursor:pointer;user-select:none;transition:.08s}
+.cell:hover{transform:scale(.94)}.cell.done{cursor:default;color:transparent}.cell.locked{opacity:.65}
+.brush-box{margin-top:18px;background:#1a2234;padding:15px;border-radius:15px}
+.brush-title{display:flex;justify-content:space-between}
+.upgrade{width:100%;margin-top:10px;padding:12px;border:0;border-radius:11px;background:#6078ff;color:white;font-weight:bold;cursor:pointer}
+.upgrade:disabled{opacity:.4;cursor:not-allowed}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{width:min(400px,100%);background:#1a2234;border-radius:20px;padding:25px;text-align:center}
+.big-reward{font-size:40px;color:#ffd34d;font-weight:900;margin:15px}
+.close{border:0;background:#6078ff;color:white;padding:12px 30px;border-radius:10px;cursor:pointer}
 </style>
 </head>
 <body>
-<div id="root"></div>
+<header class="header">
+<div class="logo">🎨 Color by Number</div>
+<div class="stats">
+<div class="stat">🪙 <span id="coins">0</span></div>
+<div class="stat">⭐ Level <span id="playerLevel">1</span></div>
+<div class="stat">🖌️ Brush <span id="brushLevel">1</span> ×<span id="multiplier">1.0</span></div>
+</div>
+</header>
+
+<div class="container">
+<section id="home">
+<h1>Choose a Picture</h1>
+<div class="subtitle">Complete every number to finish the picture.</div>
+<div class="pictures" id="pictures"></div>
+<div class="brush-box">
+<div class="brush-title"><strong>🖌️ Brush Power</strong><span>Level <span id="brushLevelHome">1</span></span></div>
+<p>Reward multiplier: <strong>×<span id="multiplierHome">1.0</span></strong></p>
+<button class="upgrade" id="upgradeHome" onclick="upgradeBrush()">Upgrade Brush</button>
+</div>
+</section>
+
+<section id="game" class="hidden">
+<div class="game-top">
+<button class="back" onclick="goHome()">← Back</button>
+<div class="number-info">
+<div>Number <span class="active-number" id="activeNumber">1</span></div>
+<div class="remaining">Remaining: <strong id="remaining">0</strong></div>
+</div>
+</div>
+<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+<div class="board" id="board"></div>
+<div class="brush-box">
+<div class="brush-title"><strong>🖌️ Brush</strong><span>Level <span id="brushGame">1</span> ×<span id="multiplierGame">1.0</span></span></div>
+<button class="upgrade" onclick="upgradeBrush()" id="upgradeGame">Upgrade Brush</button>
+</div>
+</section>
+</div>
+
+<div id="rewardModal" class="modal hidden">
+<div class="modal-box">
+<h2>🎉 Picture Complete!</h2>
+<div class="big-reward">+<span id="rewardAmount">0</span> 🪙</div>
+<p>Your Brush multiplier was applied.</p>
+<button class="close" onclick="closeReward()">Continue</button>
+</div>
+</div>
+
 <script>
-(function(){
-"use strict";
+let player=JSON.parse(localStorage.getItem("colorNumberPlayer"))||{coins:0,level:1,brushLevel:1,completed:[]};
 
-const KEY="cbn-real-prototype-v1";
-const BRUSH={
-1:{m:1.0,cost:0},2:{m:1.1,cost:300},3:{m:1.5,cost:1000},
-4:{m:1.9,cost:2500},5:{m:2.3,cost:6000},6:{m:2.7,cost:15000},
-7:{m:3.1,cost:40000},8:{m:3.5,cost:100000},9:{m:3.9,cost:250000},
-10:{m:4.3,cost:700000}
-};
+const multipliers=[1.0,1.1,1.5,1.9,2.3,2.7,3.1,3.5,3.9,4.3];
+const brushCosts=[0,300,1000,2500,6000,15000,40000,100000,250000,700000];
 
-const PICTURES=[
- {id:1,name:"Flower",stage:1,groups:8,reward:40,icon:"🌸"},
- {id:2,name:"Sunset",stage:2,groups:20,reward:90,icon:"🌅"},
- {id:3,name:"Lion",stage:3,groups:50,reward:180,icon:"🦁"},
- {id:4,name:"City",stage:4,groups:100,reward:350,icon:"🌆"},
- {id:5,name:"Masterpiece",stage:5,groups:200,reward:700,icon:"🎨"}
+const pictures=[
+{id:"flower",name:"Flower",stage:1,groups:8,reward:40,icon:"🌸"},
+{id:"sunset",name:"Sunset",stage:2,groups:20,reward:90,icon:"🌅"},
+{id:"lion",name:"Lion",stage:3,groups:50,reward:180,icon:"🦁"},
+{id:"city",name:"City",stage:4,groups:100,reward:350,icon:"🌆"},
+{id:"masterpiece",name:"Masterpiece",stage:5,groups:200,reward:700,icon:"🎨"}
 ];
 
-let state=load();
-let game=null;
+let currentPicture=null,currentNumber=1,counts={},originalCounts={},totalCells=400;
 
-function load(){
- try{
-  const x=JSON.parse(localStorage.getItem(KEY)||"null");
-  return Object.assign({coins:0,brush:1,playerLevel:1,completed:[]},x||{});
- }catch(e){return {coins:0,brush:1,playerLevel:1,completed:[]}}
-}
-function save(){localStorage.setItem(KEY,JSON.stringify(state))}
-function brush(){return BRUSH[state.brush]||BRUSH[1]}
-function money(n){return Math.floor(n).toLocaleString()}
+function multiplier(){return multipliers[player.brushLevel-1]}
+function save(){localStorage.setItem("colorNumberPlayer",JSON.stringify(player))}
 
-function render(){
- const root=document.getElementById("root");
- root.innerHTML="";
- const app=document.createElement("div"); app.className="app"; root.appendChild(app);
+function renderPictures(){
+const container=document.getElementById("pictures");container.innerHTML="";
+pictures.forEach(pic=>{
+const card=document.createElement("div");card.className="card";
+card.innerHTML=`<div class="preview">${pic.icon}</div><h3>${pic.name}</h3><p>Stage ${pic.stage}</p><p>${pic.groups} numbers</p><p class="reward">Base Reward: ${pic.reward} 🪙</p>`;
+card.onclick=()=>startGame(pic);container.appendChild(card);
+})}
 
- const top=document.createElement("div"); top.className="top";
- top.innerHTML='<div><div class="logo">🎨 Color by Number</div><div class="subtitle">Find the active number and finish it completely.</div></div><div class="coins">🪙 '+money(state.coins)+'</div>';
- app.appendChild(top);
-
- const stats=document.createElement("div");stats.className="panel statrow";
- stats.innerHTML='<div class="stat"><small>Player Level</small><b>'+state.playerLevel+'</b></div><div class="stat"><small>Brush Level</small><b>'+state.brush+'</b></div><div class="stat"><small>Multiplier</small><b>×'+brush().m.toFixed(1)+'</b></div>';
- app.appendChild(stats);
-
- const bp=document.createElement("div");bp.className="panel brush";
- const next=BRUSH[state.brush+1];
- bp.innerHTML='<div class="brushIcon">🖌️</div><div class="grow"><b>Brush Level '+state.brush+'</b><div class="muted">All rewards ×'+brush().m.toFixed(1)+'</div></div>';
- const ub=document.createElement("button");ub.className="upgrade";ub.textContent=next?"Upgrade · "+money(next.cost)+" 🪙":"MAX LEVEL";
- if(next) ub.onclick=upgrade; else ub.disabled=true;
- bp.appendChild(ub);app.appendChild(bp);
-
- const title=document.createElement("div");title.className="sectionTitle";title.textContent="Choose a picture";app.appendChild(title);
- const cards=document.createElement("div");cards.className="images";app.appendChild(cards);
-
- PICTURES.forEach(p=>{
-  const card=document.createElement("div");card.className="imageCard";
-  const done=state.completed.includes(p.id);
-  const unlocked=p.stage<=state.playerLevel+1;
-  card.innerHTML='<div class="preview">'+p.icon+'</div><h3>'+p.name+'</h3><div class="muted">Stage '+p.stage+' · '+p.groups+' numbers · '+money(Math.floor(p.reward*brush().m))+' 🪙</div>';
-  const b=document.createElement("button");b.className="play "+(!unlocked?"lock":"");b.textContent=done?"Completed":unlocked?"Play":"🔒 Locked";
-  b.disabled=!unlocked||done;b.onclick=()=>start(p);card.appendChild(b);cards.appendChild(card);
- });
+function goHome(){
+document.getElementById("game").classList.add("hidden");
+document.getElementById("home").classList.remove("hidden");
+renderUI();
 }
 
-function upgrade(){
- const next=BRUSH[state.brush+1];
- if(!next)return;
- if(state.coins<next.cost){alert("You need "+money(next.cost-state.coins)+" more Coins.");return}
- state.coins-=next.cost;state.brush++;save();render();
+function startGame(pic){
+currentPicture=pic;currentNumber=1;counts={};originalCounts={};
+createNumberCounts();
+document.getElementById("home").classList.add("hidden");
+document.getElementById("game").classList.remove("hidden");
+createBoard();updateGameUI();
 }
 
-function start(p){
- // 20x20 = 400 clickable numbered regions. Each number has multiple cells.
- const size=20;
- const cells=[];
- for(let i=0;i<size*size;i++){
-   const x=i%size,y=Math.floor(i/size);
-   // Create a simple picture-like distribution rather than a random wall of numbers.
-   let n;
-   const cx=9.5,cy=9.5,dx=x-cx,dy=y-cy;
-   const r=Math.sqrt(dx*dx+dy*dy);
-   if(p.id===1) n=(Math.abs(dx)<4&&Math.abs(dy)<4)?2:(r<8?1:3);
-   else if(p.id===2) n=y<5?1:y<11?2:y<15?3:4;
-   else if(p.id===3) n=(r<4)?1:(Math.abs(dx)<7&&Math.abs(dy)<8)?2:(r<9?3:4);
-   else if(p.id===4) n=(y<4?1:(x<5?2:(x>14?3:4)));
-   else n=(Math.floor((x+y)/3)%8)+1;
-   cells.push(n);
- }
- const max=Math.max.apply(null,cells);
- const counts={};cells.forEach(n=>counts[n]=(counts[n]||0)+1);
- game={picture:p,size,cells,counts,current:1,found:0,done:false};
- renderGame();
+function createNumberCounts(){
+let remaining=totalCells;
+for(let n=1;n<=currentPicture.groups;n++){
+const numbersLeft=currentPicture.groups-n+1;
+let count=n===currentPicture.groups?remaining:Math.max(1,Math.floor(remaining/numbersLeft));
+counts[n]=count;remaining-=count;
+}
+originalCounts={...counts};
 }
 
-function renderGame(){
- const root=document.getElementById("root");root.innerHTML="";
- const app=document.createElement("div");app.className="app";root.appendChild(app);
- const p=game.picture;
+function createBoard(){
+const board=document.getElementById("board");board.innerHTML="";
+let cells=[];
+for(let number=1;number<=currentPicture.groups;number++)
+for(let i=0;i<counts[number];i++)cells.push(number);
 
- const top=document.createElement("div");top.className="top";
- top.innerHTML='<div class="gameHead"><button class="back">← Back</button><div><div class="logo">'+p.icon+" "+p.name+'</div><div class="subtitle">Complete number '+game.current+' before the next one unlocks.</div></div></div><div class="coins">🪙 '+money(state.coins)+'</div>';
- top.querySelector(".back").onclick=()=>{game=null;render()};app.appendChild(top);
+for(let i=cells.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[cells[i],cells[j]]=[cells[j],cells[i]]}
 
- const target=document.createElement("div");target.className="target";
- target.innerHTML='<div><div class="muted" style="color:#cbd5e1">CURRENT NUMBER</div><div class="targetNum">'+game.current+'</div></div><div class="remaining">Remaining<br><b>'+game.counts[game.current]+'</b></div>';
- app.appendChild(target);
-
- const nums=document.createElement("div");nums.className="nums";
- for(let n=1;n<=Math.max.apply(null,game.cells);n++){
-  const c=document.createElement("button");c.className="numChip "+(n===game.current?"active":"locked");c.textContent=n;
-  c.disabled=n!==game.current;nums.appendChild(c);
- }
- app.appendChild(nums);
-
- const wrap=document.createElement("div");wrap.className="canvasWrap";
- const canvas=document.createElement("div");canvas.className="canvas";wrap.appendChild(canvas);app.appendChild(wrap);
-
- game.cells.forEach((n,i)=>{
-  const cell=document.createElement("button");cell.className="cell";
-  cell.textContent=n;
-  cell.style.background=paintColor(n,Math.max.apply(null,game.cells));
-  if(n!==game.current)cell.style.filter="saturate(.15) brightness(1.15)";
-  cell.onclick=()=>{
-   if(n!==game.current){wrong(cell);return}
-   cell.disabled=true;cell.classList.add("done");cell.textContent="";
-   game.counts[n]--;game.found++;
-   if(game.counts[n]===0){
-    if(n<Math.max.apply(null,game.cells)){
-      game.current=n+1;
-      renderGame();
-    }else finish();
-   }else renderGame();
-  };
-  canvas.appendChild(cell);
- });
-
- const note=document.createElement("div");note.className="note";
- note.textContent="You cannot select the next number until the current number reaches 0.";
- app.appendChild(note);
+cells.forEach((number,index)=>{
+const cell=document.createElement("div");
+cell.className="cell";cell.textContent=number;
+cell.dataset.number=number;cell.dataset.index=index;
+cell.onclick=()=>clickCell(cell);board.appendChild(cell);
+});
 }
 
-function paintColor(n,max){
- const hue=(n-1)*360/Math.max(max,1);
- return "hsl("+hue+",70%,78%)";
+function clickCell(cell){
+const number=Number(cell.dataset.number);
+if(number!==currentNumber){
+cell.classList.add("locked");setTimeout(()=>cell.classList.remove("locked"),180);return;
 }
-function wrong(cell){
- cell.classList.remove("wrong");void cell.offsetWidth;cell.classList.add("wrong");
- if(navigator.vibrate)navigator.vibrate(30);
+if(cell.classList.contains("done"))return;
+cell.classList.add("done");cell.textContent="";
+counts[currentNumber]--;updateGameUI();
+
+if(counts[currentNumber]<=0){
+if(currentNumber>=currentPicture.groups)completePicture();
+else{currentNumber++;updateGameUI();}
+}
 }
 
-function finish(){
- const base=game.picture.reward;
- const total=Math.floor(base*brush().m);
- state.coins+=total;
- state.playerLevel=Math.min(100,state.playerLevel+1);
- if(state.completed.indexOf(game.picture.id)===-1)state.completed.push(game.picture.id);
- save();
- game.done=true;
- const root=document.getElementById("root");
- root.innerHTML='<div class="app"><div class="panel completeBanner">🎉 Picture Completed!<br><br>Base Reward: '+money(base)+' 🪙<br>Brush ×'+brush().m.toFixed(1)+'<br><br><span style="font-size:24px">+'+money(total)+' 🪙</span><br><br><button class="upgrade" id="backHome">Continue</button></div></div>';
- document.getElementById("backHome").onclick=()=>{game=null;render()};
+function updateGameUI(){
+document.getElementById("activeNumber").textContent=currentNumber;
+document.getElementById("remaining").textContent=counts[currentNumber]||0;
+const total=originalCounts[currentNumber]||1;
+const done=total-(counts[currentNumber]||0);
+document.getElementById("progressBar").style.width=Math.min(100,done/total*100)+"%";
 }
 
-render();
-})();
+function completePicture(){
+const reward=Math.floor(currentPicture.reward*multiplier());
+player.coins+=reward;
+player.level=Math.max(player.level,currentPicture.stage+1);
+if(!player.completed.includes(currentPicture.id))player.completed.push(currentPicture.id);
+save();
+document.getElementById("rewardAmount").textContent=reward;
+document.getElementById("rewardModal").classList.remove("hidden");
+renderUI();
+}
+
+function closeReward(){
+document.getElementById("rewardModal").classList.add("hidden");
+goHome();
+}
+
+function upgradeBrush(){
+if(player.brushLevel>=10){alert("Brush is already MAX level!");return}
+const next=player.brushLevel+1;
+const cost=brushCosts[next-1];
+if(player.coins<cost){alert("You need "+cost.toLocaleString()+" Coins.");return}
+player.coins-=cost;player.brushLevel=next;save();renderUI();
+}
+
+function renderUI(){
+const mult=multiplier();
+document.getElementById("coins").textContent=player.coins.toLocaleString();
+document.getElementById("playerLevel").textContent=player.level;
+document.getElementById("brushLevel").textContent=player.brushLevel;
+document.getElementById("multiplier").textContent=mult.toFixed(1);
+document.getElementById("brushLevelHome").textContent=player.brushLevel;
+document.getElementById("multiplierHome").textContent=mult.toFixed(1);
+document.getElementById("brushGame").textContent=player.brushLevel;
+document.getElementById("multiplierGame").textContent=mult.toFixed(1);
+updateUpgradeButton("upgradeHome");updateUpgradeButton("upgradeGame");
+}
+
+function updateUpgradeButton(id){
+const button=document.getElementById(id);if(!button)return;
+if(player.brushLevel>=10){button.textContent="MAX LEVEL";button.disabled=true;return}
+const next=player.brushLevel+1,cost=brushCosts[next-1];
+button.textContent=`Upgrade → Level ${next} • ${cost.toLocaleString()} 🪙`;
+button.disabled=player.coins<cost;
+}
+
+renderPictures();renderUI();
 </script>
 </body>
 </html>
