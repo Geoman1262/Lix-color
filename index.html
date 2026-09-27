@@ -2,196 +2,256 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lix Color — Real Shapes Prototype</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lix Color</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#eef5ff;color:#172033}
-.app{max-width:760px;margin:auto;padding:14px}.top,.gameTop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.logo{font-size:25px;font-weight:900}.coins{background:#fff;border:1px solid #dbe5f3;border-radius:18px;padding:8px 12px;font-weight:800}
-button{font:inherit;cursor:pointer}.brush,.primary{border:0;border-radius:13px;padding:10px 13px;background:#172033;color:#fff;font-weight:900}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:14px 0}.tab{border:1px solid #d7e1ef;background:#fff;border-radius:13px;padding:11px;font-weight:800}.tab.active{background:#172033;color:#fff}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.card{background:#fff;border:1px solid #dce5f1;border-radius:18px;overflow:hidden}
-.thumb{aspect-ratio:1.1;background:#f5f8fc;display:grid;place-items:center;position:relative}.thumb svg{width:94%;height:94%}
-.meta{padding:10px}.title{font-weight:900}.sub{font-size:12px;color:#69758a;margin-top:3px}.badge,.lock{position:absolute;background:#fff;border:1px solid #dbe4ef;border-radius:10px;padding:5px 8px;font-weight:900}.badge{top:8px;left:8px}.lock{font-size:28px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
-.card.locked .thumb{opacity:.68}.card button{margin:0 10px 11px;width:calc(100% - 20px);border:0;border-radius:12px;padding:10px;font-weight:900;background:#eaf1fb;color:#172033}.card button.primary{background:#172033;color:#fff}
-.gameTop{margin-bottom:10px}.back{border:0;background:#fff;border:1px solid #dbe4ef;border-radius:11px;padding:9px 12px;font-weight:900}
-.numberBtns{display:flex;gap:6px;overflow:auto;padding:5px 0 10px}.num{min-width:42px;border:1px solid #d8e2ef;background:#fff;border-radius:10px;padding:8px;font-weight:900}.num.active{background:#172033;color:#fff}.num.done{background:#dff6e6}
-.canvas{background:#fff;border:1px solid #dce5ef;border-radius:20px;padding:8px}.canvas svg{width:100%;display:block;touch-action:manipulation}
-.region{stroke:#ffffff;stroke-width:1.2;cursor:pointer;transition:filter .12s}.region:hover{filter:brightness(.97)}
-.region.done{stroke:#fff}.label{font-size:8px;font-weight:900;fill:#27344a;pointer-events:none;text-anchor:middle;dominant-baseline:middle}
-.hint{text-align:center;color:#68748a;font-size:12px;margin:8px}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#172033;color:#fff;padding:10px 14px;border-radius:13px;font-weight:800;display:none;z-index:40}
-@media(max-width:430px){.grid{grid-template-columns:1fr}}
+*{box-sizing:border-box}
+body{margin:0;background:#eef5ff;color:#172033;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+button{font:inherit;cursor:pointer}
+.app{max-width:760px;margin:auto;padding:14px}
+.top{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.brand{font-size:28px;font-weight:950}
+.player{grid-column:1/-1;background:#fff;border:1px solid #dbe4ef;border-radius:16px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.player b{font-size:15px}.xp{height:7px;background:#e6edf6;border-radius:9px;overflow:hidden;margin-top:5px}.xp i{display:block;height:100%;background:#172033;width:0}
+.coins{background:#fff;border:1px solid #dbe4ef;border-radius:18px;padding:9px 13px;font-weight:900;white-space:nowrap}
+.brushBtn{grid-column:1/-1;border:1px solid #dbe4ef;background:#fff;border-radius:15px;padding:11px 13px;font-weight:900;text-align:left}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.tab{border:1px solid #d5dfeb;background:#fff;border-radius:14px;padding:12px 8px;font-weight:900}
+.tab.active{background:#172033;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{background:#fff;border:1px solid #dbe4ef;border-radius:19px;overflow:hidden}
+.thumb{aspect-ratio:1.05;background:#f7f9fc;position:relative;display:grid;place-items:center;padding:6px}
+.thumb svg{width:100%;height:100%}
+.card.locked .thumb{opacity:.62}
+.lock{position:absolute;inset:0;display:grid;place-items:center;font-size:29px;text-shadow:0 2px 5px #fff}
+.badge{position:absolute;top:8px;left:8px;background:#fff;border:1px solid #dbe4ef;border-radius:10px;padding:5px 8px;font-weight:900;font-size:11px}
+.meta{padding:10px 11px 7px}.title{font-weight:950}.sub{font-size:12px;color:#667389;margin-top:3px}
+.cardBtn{width:calc(100% - 20px);margin:0 10px 10px;border:0;border-radius:13px;padding:11px;font-weight:950;background:#e7eef7;color:#172033}
+.cardBtn.open{background:#172033;color:#fff}
+.overlay{position:fixed;inset:0;background:#081020aa;display:none;align-items:center;justify-content:center;padding:14px;z-index:50}
+.modal{background:#fff;border-radius:20px;width:min(700px,100%);max-height:92vh;overflow:auto;padding:16px}
+.modalHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.close{border:0;background:#edf2f7;border-radius:11px;padding:9px 12px;font-weight:900}
+.levels{display:grid;gap:8px;margin-top:10px}.level{border:1px solid #dbe4ef;border-radius:14px;padding:11px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.level.locked{opacity:.52}.level button{border:0;background:#172033;color:#fff;border-radius:10px;padding:8px 11px;font-weight:900}
+.gameHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.back{border:1px solid #dbe4ef;background:#fff;border-radius:11px;padding:9px 12px;font-weight:900}
+.count{font-weight:950}
+.numbar{display:flex;gap:6px;overflow:auto;padding:4px 0 10px}
+.num{min-width:45px;border:1px solid #d6e0ec;background:#fff;border-radius:10px;padding:8px 5px;font-weight:950}
+.num.active{background:#172033;color:#fff}.num.done{background:#dff5e5}
+.board{background:#fff;border:1px solid #dbe4ef;border-radius:20px;padding:7px}
+.board svg{width:100%;display:block;touch-action:manipulation}
+.region{stroke:#fff;stroke-width:1.25;cursor:pointer}.label{font-size:8px;font-weight:950;text-anchor:middle;dominant-baseline:middle;pointer-events:none;fill:#27344a}
+.region.done+.label{fill:#fff}
+.help{text-align:center;color:#667389;font-size:12px;padding:9px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#172033;color:#fff;border-radius:13px;padding:10px 14px;font-weight:850;display:none;z-index:100;white-space:nowrap}
+@media(max-width:470px){.grid{grid-template-columns:1fr}.brand{font-size:25px}}
 </style>
 </head>
 <body>
-<div class="app" id="app"></div><div class="toast" id="toast"></div>
+<div id="app" class="app"></div>
+<div id="overlay" class="overlay"><div id="modal" class="modal"></div></div>
+<div id="toast" class="toast"></div>
+
 <script>
-const brush={m:1};
-const pictureData={
+/* ---------- REAL SHAPED DEMO PICTURES ----------
+   Preview = fully colored.
+   Game = same geometry, uncolored + numbers, then regions fill with their real colors.
+*/
+const PICTURES = {
   1:{
-    title:"Flower",
-    reward:60,
+    title:"Flower", reward:60,
     regions:[
-      {n:1,d:"M100 25 C84 18 69 29 72 46 C57 35 40 42 42 59 C28 55 20 67 29 80 C42 98 69 89 85 75 L100 60 Z",x:58,y:58},
-      {n:1,d:"M100 25 C116 18 131 29 128 46 C143 35 160 42 158 59 C172 55 180 67 171 80 C158 98 131 89 115 75 L100 60 Z",x:142,y:58},
-      {n:2,d:"M100 56 C82 42 60 51 61 71 C62 92 80 105 100 105 C120 105 138 92 139 71 C140 51 118 42 100 56 Z",x:100,y:76},
-      {n:3,d:"M100 100 C91 112 85 130 84 151 L116 151 C115 130 109 112 100 100 Z",x:100,y:132},
-      {n:4,d:"M84 146 C69 143 53 149 43 163 C59 164 74 164 89 162 Z",x:67,y:157},
-      {n:4,d:"M116 146 C131 143 147 149 157 163 C141 164 126 164 111 162 Z",x:133,y:157},
-      {n:5,d:"M87 151 C89 169 87 179 80 187 L100 187 L120 187 C113 179 111 169 113 151 Z",x:100,y:174}
+      {n:1,c:"#ffd34e",d:"M100 25 C84 18 69 29 72 46 C57 35 40 42 42 59 C28 55 20 67 29 80 C42 98 69 89 85 75 L100 60 Z",x:58,y:58},
+      {n:1,c:"#ffd34e",d:"M100 25 C116 18 131 29 128 46 C143 35 160 42 158 59 C172 55 180 67 171 80 C158 98 131 89 115 75 L100 60 Z",x:142,y:58},
+      {n:2,c:"#ff8d80",d:"M100 56 C82 42 60 51 61 71 C62 92 80 105 100 105 C120 105 138 92 139 71 C140 51 118 42 100 56 Z",x:100,y:76},
+      {n:3,c:"#72c9a7",d:"M100 100 C91 112 85 130 84 151 L116 151 C115 130 109 112 100 100 Z",x:100,y:132},
+      {n:4,c:"#6db6ef",d:"M84 146 C69 143 53 149 43 163 C59 164 74 164 89 162 Z",x:67,y:157},
+      {n:4,c:"#6db6ef",d:"M116 146 C131 143 147 149 157 163 C141 164 126 164 111 162 Z",x:133,y:157},
+      {n:5,c:"#8a78d6",d:"M87 151 C89 169 87 179 80 187 L100 187 L120 187 C113 179 111 169 113 151 Z",x:100,y:174}
     ]
   },
   2:{
-    title:"Cute Cat",
-    reward:90,
+    title:"Cute Cat", reward:90,
     regions:[
-      {n:1,d:"M52 70 L42 25 L79 48 C92 42 108 42 121 48 L158 25 L148 70 C157 84 158 104 151 119 C142 138 122 147 100 147 C78 147 58 138 49 119 C42 104 43 84 52 70 Z",x:100,y:91},
-      {n:2,d:"M42 25 L79 48 C68 51 57 58 52 70 Z",x:57,y:43},
-      {n:2,d:"M158 25 L121 48 C132 51 143 58 148 70 Z",x:143,y:43},
-      {n:3,d:"M64 84 C69 76 79 76 84 84 C79 92 69 92 64 84 Z",x:74,y:84},
-      {n:3,d:"M116 84 C121 76 131 76 136 84 C131 92 121 92 116 84 Z",x:126,y:84},
-      {n:4,d:"M94 101 Q100 96 106 101 L100 108 Z",x:100,y:102},
-      {n:5,d:"M100 108 C92 111 91 119 100 124 C109 119 108 111 100 108 Z",x:100,y:117},
-      {n:6,d:"M72 111 L42 104 M72 119 L38 121 M128 111 L158 104 M128 119 L162 121",x:100,y:115},
-      {n:7,d:"M74 147 C79 159 87 166 100 168 C113 166 121 159 126 147 C116 152 84 152 74 147 Z",x:100,y:158}
+      {n:1,c:"#f6c65b",d:"M52 70 L42 25 L79 48 C92 42 108 42 121 48 L158 25 L148 70 C157 84 158 104 151 119 C142 138 122 147 100 147 C78 147 58 138 49 119 C42 104 43 84 52 70 Z",x:100,y:91},
+      {n:2,c:"#e7a95d",d:"M42 25 L79 48 C68 51 57 58 52 70 Z",x:57,y:43},
+      {n:2,c:"#e7a95d",d:"M158 25 L121 48 C132 51 143 58 148 70 Z",x:143,y:43},
+      {n:3,c:"#fff5dd",d:"M64 84 C69 76 79 76 84 84 C79 92 69 92 64 84 Z",x:74,y:84},
+      {n:3,c:"#fff5dd",d:"M116 84 C121 76 131 76 136 84 C131 92 121 92 116 84 Z",x:126,y:84},
+      {n:4,c:"#ef7c7c",d:"M94 101 Q100 96 106 101 L100 108 Z",x:100,y:102},
+      {n:5,c:"#ef8da7",d:"M100 108 C92 111 91 119 100 124 C109 119 108 111 100 108 Z",x:100,y:117},
+      {n:6,c:"#6c89a9",d:"M72 111 L42 104 M72 119 L38 121 M128 111 L158 104 M128 119 L162 121",x:100,y:115},
+      {n:7,c:"#b8795c",d:"M74 147 C79 159 87 166 100 168 C113 166 121 159 126 147 C116 152 84 152 74 147 Z",x:100,y:158}
     ]
   },
   3:{
-    title:"Mountain Lake",
-    reward:120,
+    title:"Mountain Lake", reward:120,
     regions:[
-      {n:1,d:"M18 139 L64 65 L94 104 L121 57 L181 139 Z",x:100,y:111},
-      {n:2,d:"M64 65 L94 104 L83 119 L52 139 L18 139 Z",x:54,y:109},
-      {n:3,d:"M121 57 L181 139 L113 139 L105 115 Z",x:143,y:110},
-      {n:4,d:"M18 139 L181 139 L181 178 L18 178 Z",x:100,y:157},
-      {n:5,d:"M18 139 L64 65 L71 76 L42 139 Z",x:39,y:115},
-      {n:5,d:"M121 57 L181 139 L169 139 L132 86 Z",x:151,y:107},
-      {n:6,d:"M18 139 Q50 129 82 139 T145 139 T181 139 L181 151 L18 151 Z",x:100,y:145}
+      {n:1,c:"#6c9edb",d:"M18 139 L64 65 L94 104 L121 57 L181 139 Z",x:100,y:111},
+      {n:2,c:"#dce8f7",d:"M64 65 L94 104 L83 119 L52 139 L18 139 Z",x:54,y:109},
+      {n:3,c:"#527eb9",d:"M121 57 L181 139 L113 139 L105 115 Z",x:143,y:110},
+      {n:4,c:"#6eb6d7",d:"M18 139 L181 139 L181 178 L18 178 Z",x:100,y:157},
+      {n:5,c:"#86b4e6",d:"M18 139 L64 65 L71 76 L42 139 Z",x:39,y:115},
+      {n:5,c:"#86b4e6",d:"M121 57 L181 139 L169 139 L132 86 Z",x:151,y:107},
+      {n:6,c:"#ffffff",d:"M18 139 Q50 129 82 139 T145 139 T181 139 L181 151 L18 151 Z",x:100,y:145}
     ]
   }
 };
-const state=JSON.parse(localStorage.getItem("lixColorV10")||"null")||{coins:0,stage:1,progress:{},completed:{}};
-const save=()=>localStorage.setItem("lixColorV10",JSON.stringify(state));
-const toast=x=>{const t=document.getElementById("toast");t.textContent=x;t.style.display="block";setTimeout(()=>t.style.display="none",1500)};
-const colors={1:"#ffd54f",2:"#ff9f80",3:"#80cbc4",4:"#81d4fa",5:"#b39ddb",6:"#a5d6a7",7:"#f48fb1"};
-function thumb(p){
-  return `<svg viewBox="0 0 200 200">${p.regions.map(r=>`<path d="${r.d}" fill="#ffd54f" stroke="#fff" stroke-width="1"/>`).join("")}</svg>`;
+
+const BRUSH=[
+ {level:1,m:1,u:1,c:0},{level:2,m:1.1,u:5,c:500},{level:3,m:1.5,u:12,c:2500},
+ {level:4,m:1.9,u:19,c:7500},{level:5,m:2.3,u:26,c:20000},{level:6,m:2.7,u:33,c:50000},
+ {level:7,m:3.1,u:40,c:125000},{level:8,m:3.5,u:47,c:300000},{level:9,m:3.9,u:54,c:750000},
+ {level:10,m:4.3,u:61,c:1800000}
+];
+const PREMIUM=[5000,7500,10000,12500,15000,20000,25000,30000,40000,50000,60000,75000,90000,110000,135000,165000,200000,250000,300000,400000];
+const state=JSON.parse(localStorage.getItem("lixColorV12")||"null")||{
+ coins:0,level:1,brush:1,stage:1,progress:{},completed:{},premiumOpened:{},weekly:{}
+};
+const save=()=>localStorage.setItem("lixColorV12",JSON.stringify(state));
+const fmt=n=>Math.round(n).toLocaleString();
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";clearTimeout(window._toast);window._toast=setTimeout(()=>t.style.display="none",1700)}
+function header(){
+ const b=BRUSH[state.brush-1];
+ return `<div class="top">
+  <div class="brand">Lix Color</div><div class="coins">🪙 ${fmt(state.coins)}</div>
+  <div class="player"><div style="flex:1"><b>Player Level ${state.level}</b><div class="xp"><i style="width:${Math.min(100,(state.stage/150)*100)}%"></i></div><small>Stage ${state.stage} / 150</small></div><div>🖌️ Lv.${state.brush}<br><small>×${b.m}</small></div></div>
+  <button class="brushBtn" id="brushOpen">🖌️ Brush Level ${state.brush} · Reward ×${b.m} <span style="float:right">Upgrade ›</span></button>
+ </div>`;
 }
-function home(){
-  let cards="";
-  for(let i=1;i<=3;i++){let p=pictureData[i],locked=i>state.stage,done=!!state.completed["normal"+i];cards+=`<div class="card ${locked?"locked":""}"><div class="thumb">${thumb(p)}${locked?'<div class="lock">🔒</div>':""}${done?'<div class="badge">✓ Completed</div>':""}</div><div class="meta"><div class="title">Stage ${i} · ${p.title}</div><div class="sub">${locked?"Locked":"Reward "+p.reward+" Coins"}</div></div><button class="${locked?"":"primary"} data-i="${i}">${locked?"Locked":"Play"}</button></div>`}
-  document.getElementById("app").innerHTML=`<div class="top"><div class="logo">Lix Color</div><div class="coins">🪙 ${state.coins}</div></div>
-<div class="tabs">
-<button class="tab active">Normal</button>
-<button class="tab" onclick="showCategory('premium')">Premium</button>
-<button class="tab" onclick="showCategory('weekly')">Weekly</button>
-</div>
-<div class="grid">${cards}</div>`;
-  document.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{let i=+b.dataset.i;if(i<=state.stage)start(i);else toast("Locked")});
+function preview(p){
+ return `<svg viewBox="0 0 200 200" aria-label="${p.title}">${p.regions.map(r=>`<path d="${r.d}" fill="${r.c}" stroke="#fff" stroke-width="1.2"/>`).join("")}</svg>`;
 }
-function start(i){
-  const p=pictureData[i],key="normal"+i,old=state.progress[key];
-  const regions=old?old.regions:p.regions.map(r=>({...r,done:false}));
-  draw({i,key,regions,current:old?.current||1});
+function card(cat,i){
+ let p=PICTURES[((i-1)%3)+1], open=false, sub="", action="Locked", completed=false;
+ if(cat==="normal"){open=i<=state.stage;sub=open?(i<state.stage?"Completed":"Reward "+p.reward+" Coins"):"Complete Stage "+(i-1);action=open?"Play":"Locked";completed=!!state.completed["normal"+i]}
+ if(cat==="premium"){open=!!state.premiumOpened[i];sub=state.stage<15?"Unlocks at Stage 15":open?"Unlocked · Entry "+fmt(PREMIUM[i-1]):"Entry "+fmt(PREMIUM[i-1])+" Coins";action=open?"Play":state.stage>=15?"Open":"Locked";completed=!!state.completed["premium"+i]}
+ if(cat==="weekly"){open=i===1&&state.weekly.opened;sub=state.stage<30?"Unlocks at Stage 30":i===1?(open?"Opened · 3,000 Coins":"3,000 Coins to open"):"Future Week";action=open?"Play":i===1&&state.stage>=30?"Open":"Locked";completed=!!state.completed["weekly"+i]}
+ return `<div class="card ${open?"":"locked"}"><div class="thumb">${preview(p)}${!open?'<div class="lock">🔒</div>':""}${completed?'<div class="badge">✓ Completed</div>':""}</div><div class="meta"><div class="title">${cat==="normal"?"Stage "+i:cat==="premium"?"Premium "+i:"Weekly "+i}</div><div class="sub">${sub}</div></div><button class="cardBtn ${open?"open":""}" data-action="${cat}" data-id="${i}">${action}</button></div>`;
+}
+function home(cat="normal"){
+ const max=cat==="normal"?150:cat==="premium"?20:52;
+ let cards="";for(let i=1;i<=max;i++)cards+=card(cat,i);
+ document.getElementById("app").innerHTML=header()+`<div class="tabs">
+ <button class="tab ${cat==="normal"?"active":""}" data-cat="normal">Normal</button>
+ <button class="tab ${cat==="premium"?"active":""}" data-cat="premium">Premium</button>
+ <button class="tab ${cat==="weekly"?"active":""}" data-cat="weekly">Weekly</button>
+ </div><div class="grid">${cards}</div>`;
+ document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>home(b.dataset.cat));
+ document.getElementById("brushOpen").onclick=openBrush;
+ document.querySelectorAll("[data-action]").forEach(b=>b.onclick=()=>cardAction(b.dataset.action,+b.dataset.id));
+}
+function cardAction(cat,i){
+ if(cat==="normal"){if(i>state.stage)return toast("Locked — complete the previous Stage");return startNormal(i)}
+ if(cat==="premium"){
+  if(state.level<15)return toast("Premium unlocks at Player Level 15");
+  if(!state.premiumOpened[i]){
+   const c=PREMIUM[i-1];if(state.coins<c)return toast("Not enough Coins");
+   state.coins-=c;state.premiumOpened[i]=true;save();home("premium");return;
+  }
+  return startPremium(i);
+ }
+ if(state.level<30)return toast("Weekly unlocks at Player Level 30");
+ if(i!==1)return toast("This week is not available yet");
+ if(!state.weekly.opened){
+  if(state.coins<3000)return toast("3,000 Coins required");
+  state.coins-=3000;state.weekly.opened=true;save();
+ }
+ startWeekly();
+}
+function openBrush(){
+ document.getElementById("modal").innerHTML=`<div class="modalHead"><div><h2 style="margin:0">Brush Upgrade</h2><small>Multiplier applies to completed-picture rewards.</small></div><button class="close" id="closeBrush">Close</button></div>
+ <div class="levels">${BRUSH.map(b=>`<div class="level ${state.brush<b.level?"locked":""}">
+ <div><b>Level ${b.level}</b> · ×${b.m}<br><small>Unlock at Stage ${b.u} · ${b.c?fmt(b.c)+" Coins":"Free"}</small></div>
+ <button data-buy="${b.level}">${state.brush>=b.level?"Owned":state.stage<b.u?"Locked":"Buy"}</button></div>`).join("")}</div>`;
+ document.getElementById("overlay").style.display="flex";
+ document.getElementById("closeBrush").onclick=closeModal;
+ document.querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>buyBrush(+b.dataset.buy));
+}
+function closeModal(){document.getElementById("overlay").style.display="none"}
+document.getElementById("overlay").onclick=e=>{if(e.target.id==="overlay")closeModal()};
+function buyBrush(level){
+ const b=BRUSH[level-1];if(level<=state.brush)return;if(state.stage<b.u)return toast("Locked");if(state.coins<b.c)return toast("Not enough Coins");
+ state.coins-=b.c;state.brush=level;save();closeModal();home();toast("Brush upgraded");
+}
+
+/* Game view: SAME SHAPES as preview, but uncolored and numbered. */
+function cloneRegions(p){return p.regions.map(r=>({...r,done:false}))}
+function startNormal(i){startPicture("normal",i,PICTURES[((i-1)%3)+1])}
+function startPremium(i){startPicture("premium",i,PICTURES[((i-1)%3)+1])}
+function startPicture(cat,id,p){
+ const key=cat+id,old=state.progress[key],regions=old?.regions||cloneRegions(p);
+ drawGame({cat,id,key,p,regions,current:old?.current||1});
+}
+function drawGame(g){
+ const remaining=g.regions.filter(r=>!r.done).length,nums=[...new Set(g.regions.map(r=>r.n))].sort((a,b)=>a-b);
+ const numsHtml=nums.map(n=>{const rem=g.regions.filter(r=>r.n===n&&!r.done).length;return `<button class="num ${g.current===n?"active":""} ${rem===0?"done":""}" data-num="${n}">${n}<small style="display:block">${rem}</small></button>`}).join("");
+ const svg=g.regions.map((r,i)=>`<g><path class="region ${r.done?"done":""}" d="${r.d}" fill="${r.done?r.c:"#e5ebf2"}" data-region="${i}" data-num="${r.n}"/><text class="label" x="${r.x}" y="${r.y}">${r.done?"":r.n}</text></g>`).join("");
+ document.getElementById("app").innerHTML=`<div class="gameHead"><button class="back" id="gameBack">← Back</button><div class="count">${g.p.title} · ${g.regions.length-remaining}/${g.regions.length}</div><div class="coins">🪙 ${fmt(state.coins)}</div></div>
+ <div class="numbar">${numsHtml}</div><div class="board"><svg viewBox="0 0 200 200">${svg}</svg></div>
+ <div class="help">Number ${g.current}: tap only the matching regions. Progress saves automatically.</div>`;
+ document.getElementById("gameBack").onclick=()=>{persist(g);home(g.cat)};
+ document.querySelectorAll("[data-num]").forEach(b=>b.onclick=()=>chooseNumber(g,+b.dataset.num));
+ document.querySelectorAll("[data-region]").forEach(e=>e.onclick=()=>tapRegion(g,+e.dataset.region,+e.dataset.num));
 }
 function persist(g){state.progress[g.key]={regions:g.regions,current:g.current};save()}
-function draw(g){
-  const nums=[...new Set(g.regions.map(r=>r.n))].sort((a,b)=>a-b);
-  const buttons=nums.map(n=>{const rem=g.regions.filter(r=>r.n===n&&!r.done).length;return `<button class="num ${g.current===n?"active":""} ${rem===0?"done":""}" data-n="${n}">${n}<small style="display:block">${rem}</small></button>`}).join("");
-  const svg=g.regions.map((r,i)=>`<g><path class="region" d="${r.d}" fill="${r.done?colors[r.n]:"#e5ebf2"}" data-i="${i}" data-n="${r.n}"/><text class="label" x="${r.x}" y="${r.y}">${r.done?"":r.n}</text></g>`).join("");
-  const done=g.regions.filter(r=>r.done).length;
-  document.getElementById("app").innerHTML=`<div class="gameTop"><button class="back" id="back">← Back</button><b>${pictureData[g.i].title} · ${done}/${g.regions.length}</b><div class="coins">🪙 ${state.coins}</div></div><div class="numberBtns">${buttons}</div><div class="canvas"><svg viewBox="0 0 200 200" aria-label="${pictureData[g.i].title}">${svg}</svg></div><div class="hint">Finish number ${g.current}. Your progress is saved automatically.</div>`;
-  document.getElementById("back").onclick=()=>{persist(g);home()};
-  document.querySelectorAll(".num").forEach(b=>b.onclick=()=>{const n=+b.dataset.n;if(n>g.current&&g.regions.some(r=>r.n===g.current&&!r.done))return toast("Finish the current number first");g.current=n;persist(g);draw(g)});
-  document.querySelectorAll(".region").forEach(e=>e.onclick=()=>tap(g,+e.dataset.i,+e.dataset.n));
+function chooseNumber(g,n){
+ if(g.cat!=="weekly"&&n>g.current&&g.regions.some(r=>r.n===g.current&&!r.done))return toast("Finish the current number first");
+ g.current=n;persist(g);drawGame(g);
 }
-function tap(g,i,n){
-  const r=g.regions[i];if(r.done)return;
-  if(n!==g.current)return toast("Wrong number");
-  r.done=true;persist(g);
+function tapRegion(g,index,n){
+ const r=g.regions[index];if(r.done)return;
+ if(n!==g.current)return toast("Wrong number");
+ r.done=true;persist(g);
+ if(g.cat!=="weekly"){
   if(!g.regions.some(x=>x.n===g.current&&!x.done)){const next=g.regions.find(x=>!x.done)?.n;if(next)g.current=next}
-  if(g.regions.every(x=>x.done))finish(g);else draw(g);
+ }
+ if(g.regions.every(x=>x.done)){finishPicture(g);return}
+ drawGame(g);
 }
-function finish(g){
-  state.coins+=pictureData[g.i].reward;state.completed[g.key]=true;delete state.progress[g.key];
-  if(g.i===state.stage)state.stage=Math.min(3,state.stage+1);save();home();toast("Completed! +"+pictureData[g.i].reward+" Coins");
+function finishPicture(g){
+ let gain=0;
+ const mult=BRUSH[state.brush-1].m;
+ if(g.cat==="normal")gain=Math.round(g.p.reward*mult);
+ else if(g.cat==="premium"){const entry=PREMIUM[g.id-1],bonus=Math.round(entry*.2);gain=entry+Math.round(bonus*mult)}
+ state.coins+=gain;state.completed[g.key]=true;delete state.progress[g.key];
+ if(g.cat==="normal"&&g.id===state.stage)state.stage=Math.min(150,state.stage+1);
+ /* Player level follows stage in this version: every 5 stages = +1 level. */
+ state.level=Math.max(1,Math.floor((state.stage-1)/5)+1);
+ save();home(g.cat);toast("Completed! +"+fmt(gain)+" Coins");
 }
 
-function showCategory(cat){
-  if(cat==="premium"){ renderPremium(); return; }
-  if(cat==="weekly"){ renderWeekly(); return; }
-}
-function renderPremium(){
-  const cards=[];
-  for(let i=1;i<=20;i++){
-    const open=state.stage>=15 && !!state.premiumOpened[i];
-    const cost=[5000,7500,10000,12500,15000,20000,25000,30000,40000,50000,60000,75000,90000,110000,135000,165000,200000,250000,300000,400000][i-1];
-    const unlocked=state.stage>=15;
-    const p=pictureData[((i-1)%3)+1];
-    cards.push(`<div class="card ${open?"":"locked"}"><div class="thumb">${thumb(p)}${!open?'<div class="lock">🔒</div>':""}</div><div class="meta"><div class="title">Premium ${i}</div><div class="sub">${!unlocked?"Unlocks at Stage 15":open?"Unlocked · Entry "+cost.toLocaleString():"Entry "+cost.toLocaleString()+" Coins"}</div></div><button class="${open?"primary":""}" data-prem="${i}">${open?"Play":unlocked?"Open":"Locked"}</button></div>`);
-  }
-  document.getElementById("app").innerHTML=`<div class="top"><div class="logo">Lix Color</div><div class="coins">🪙 ${state.coins}</div></div>
-  <div class="tabs"><button class="tab" onclick="home()">Normal</button><button class="tab active">Premium</button><button class="tab" onclick="renderWeekly()">Weekly</button></div>
-  <div class="grid">${cards.join("")}</div>`;
-  document.querySelectorAll("[data-prem]").forEach(b=>b.onclick=()=>premiumClick(+b.dataset.prem));
-}
-function premiumClick(i){
-  if(state.stage<15)return toast("Unlocks at Stage 15");
-  const costs=[5000,7500,10000,12500,15000,20000,25000,30000,40000,50000,60000,75000,90000,110000,135000,165000,200000,250000,300000,400000];
-  if(!state.premiumOpened[i]){
-    if(state.coins<costs[i-1])return toast("Not enough Coins");
-    state.coins-=costs[i-1];state.premiumOpened[i]=true;save();renderPremium();return;
-  }
-  start(i);
-}
-function renderWeekly(){
-  const cards=[];
-  for(let i=1;i<=52;i++){
-    const current=i===1, open=current && state.stage>=30 && state.weeklyOpened;
-    const locked=state.stage<30 || !current;
-    const label=state.stage<30?"Unlocks at Stage 30":current?(state.weeklyOpened?"Unlocked · 3,000 Coins":"Entry 3,000 Coins"):`Week ${i} · Locked`;
-    const p=pictureData[((i-1)%3)+1];
-    cards.push(`<div class="card ${open?"":"locked"}"><div class="thumb">${thumb(p)}${!open?'<div class="lock">🔒</div>':""}</div><div class="meta"><div class="title">Weekly ${i}</div><div class="sub">${label}</div></div><button class="${open?"primary":""}" data-week="${i}">${open?"Play":(!locked&&current)?"Open":"Locked"}</button></div>`);
-  }
-  document.getElementById("app").innerHTML=`<div class="top"><div class="logo">Lix Color</div><div class="coins">🪙 ${state.coins}</div></div>
-  <div class="tabs"><button class="tab" onclick="home()">Normal</button><button class="tab" onclick="renderPremium()">Premium</button><button class="tab active">Weekly</button></div>
-  <div class="grid">${cards.join("")}</div>`;
-  document.querySelectorAll("[data-week]").forEach(b=>b.onclick=()=>weeklyClick(+b.dataset.week));
-}
-function weeklyClick(i){
-  if(state.stage<30)return toast("Unlocks at Stage 30");
-  if(i!==1)return toast("This week is not available yet");
-  if(!state.weeklyOpened){
-    if(state.coins<3000)return toast("3,000 Coins required");
-    state.coins-=3000;state.weeklyOpened=true;save();
-  }
-  startWeekly();
-}
+/* Weekly uses the same real-shaped demo geometry for the prototype.
+   It keeps free number selection and persistent progress. */
 function startWeekly(){
-  const key="weekly1",old=state.progress[key];
-  const p=pictureData[3];
-  const regions=old?old.regions:p.regions.map(r=>({...r,done:false}));
-  drawWeekly({key,regions,current:old?.current||1});
+ const p=PICTURES[3],key="weekly1",old=state.progress[key],regions=old?.regions||cloneRegions(p);
+ drawWeekly({cat:"weekly",id:1,key,p,regions,current:old?.current||1});
 }
 function drawWeekly(g){
-  const nums=[...new Set(g.regions.map(r=>r.n))].sort((a,b)=>a-b);
-  const buttons=nums.map(n=>{const rem=g.regions.filter(r=>r.n===n&&!r.done).length;return `<button class="num ${g.current===n?"active":""} ${rem===0?"done":""}" data-n="${n}">${n}<small style="display:block">${rem}</small></button>`}).join("");
-  const svg=g.regions.map((r,i)=>`<g><path class="region" d="${r.d}" fill="${r.done?colors[r.n]:"#e5ebf2"}" data-i="${i}" data-n="${r.n}"/><text class="label" x="${r.x}" y="${r.y}">${r.done?"":r.n}</text></g>`).join("");
-  document.getElementById("app").innerHTML=`<div class="gameTop"><button class="back" id="back">← Back</button><b>Weekly · ${g.regions.filter(r=>r.done).length}/${g.regions.length}</b><div class="coins">🪙 ${state.coins}</div></div><div class="numberBtns">${buttons}</div><div class="canvas"><svg viewBox="0 0 200 200">${svg}</svg></div><div class="hint">Weekly: choose any number at any time. Progress saves automatically.</div>`;
-  document.getElementById("back").onclick=()=>{persistWeekly(g);renderWeekly()};
-  document.querySelectorAll(".num").forEach(b=>b.onclick=()=>{g.current=+b.dataset.n;persistWeekly(g);drawWeekly(g)});
-  document.querySelectorAll(".region").forEach(e=>e.onclick=()=>tapWeekly(g,+e.dataset.i,+e.dataset.n));
+ const remaining=g.regions.filter(r=>!r.done).length,nums=[...new Set(g.regions.map(r=>r.n))].sort((a,b)=>a-b);
+ const ns=nums.map(n=>{const rem=g.regions.filter(r=>r.n===n&&!r.done).length;return `<button class="num ${g.current===n?"active":""} ${rem===0?"done":""}" data-num="${n}">${n}<small style="display:block">${rem}</small></button>`}).join("");
+ const svg=g.regions.map((r,i)=>`<g><path class="region" d="${r.d}" fill="${r.done?r.c:"#e5ebf2"}" data-region="${i}" data-num="${r.n}"/><text class="label" x="${r.x}" y="${r.y}">${r.done?"":r.n}</text></g>`).join("");
+ document.getElementById("app").innerHTML=`<div class="gameHead"><button class="back" id="weeklyBack">← Back</button><div class="count">Weekly · ${g.regions.length-remaining}/${g.regions.length}</div><div class="coins">🪙 ${fmt(state.coins)}</div></div>
+ <div class="numbar">${ns}</div><div class="board"><svg viewBox="0 0 200 200">${svg}</svg></div><div class="help">Weekly: choose any number at any time. Progress saves automatically.</div>`;
+ document.getElementById("weeklyBack").onclick=()=>{persist(g);home("weekly")};
+ document.querySelectorAll("[data-num]").forEach(b=>b.onclick=()=>{g.current=+b.dataset.num;persist(g);drawWeekly(g)});
+ document.querySelectorAll("[data-region]").forEach(e=>e.onclick=()=>tapWeekly(g,+e.dataset.region,+e.dataset.num));
 }
-function persistWeekly(g){state.progress[g.key]={regions:g.regions,current:g.current};save()}
-function tapWeekly(g,i,n){
-  const r=g.regions[i];if(r.done)return;if(n!==g.current)return toast("Wrong number");
-  r.done=true;persistWeekly(g);
-  if(g.regions.every(x=>x.done)){
-    state.coins+=4000;state.completed[g.key]=true;delete state.progress[g.key];state.weeklyOpened=false;save();renderWeekly();toast("+4,000 Coins");return;
-  }
-  drawWeekly(g);
+function tapWeekly(g,index,n){
+ const r=g.regions[index];if(r.done)return;if(n!==g.current)return toast("Wrong number");
+ r.done=true;persist(g);
+ if(g.regions.every(x=>x.done)){state.coins+=Math.round(4000*BRUSH[state.brush-1].m);state.completed[g.key]=true;delete state.progress[g.key];state.weekly.opened=false;save();home("weekly");toast("Weekly completed!");return}
+ drawWeekly(g);
 }
 
+/* Robust delegated fallback: Play/Open works even after any re-render. */
+document.getElementById("app").addEventListener("click",e=>{
+ const b=e.target.closest("[data-action]");if(!b)return;
+ cardAction(b.dataset.action,Number(b.dataset.id));
+});
 home();
 </script>
-</body></html>
+</body>
+</html>
