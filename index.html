@@ -190,7 +190,7 @@ game.regions.forEach(r=>{
   t.setAttribute('font-weight','900');
   t.setAttribute('fill','#172033');
   t.textContent=r.number;
-  t.style.pointerEvents='none';
+  t.style.pointerEvents='none';t.setAttribute('aria-hidden','true');
   g.appendChild(t);
 
   svg.appendChild(g);
@@ -198,26 +198,87 @@ game.regions.forEach(r=>{
 }
 
 function tapRegion(id){
-const r=game.regions[id];if(game.solved.has(id))return;
-if(r.number!==game.current){const el=[...$('board').querySelectorAll('path')].find(x=>+x.dataset.id===id);if(el){el.animate([{opacity:.45},{opacity:1}],{duration:180})}return}
-game.solved.add(id);game.counts[game.current]--;
-const path=[...$('board').querySelectorAll('path')].find(x=>+x.dataset.id===id);
-const text=[...$('board').querySelectorAll('text')].find(x=>+x.dataset.id===id);
-path.setAttribute('fill',colors[(r.number-1)%colors.length]);path.setAttribute('stroke','#ffffff');text.textContent='';
-if(game.counts[game.current]<=0){if(game.current<game.p.regions)game.current++;else finish()}
-renderGame()
+  if(!game || !game.regions[id]) return;
+
+  const r=game.regions[id];
+
+  /* Never process a region twice. */
+  if(game.solved.has(id)) return;
+
+  /* Only the active number can be painted. */
+  if(r.number !== game.current){
+    const wrong=[...$('board').querySelectorAll('g')].find(x=>+x.dataset.id===id);
+    if(wrong){
+      wrong.animate(
+        [{transform:'translateX(-2px)'},{transform:'translateX(2px)'},{transform:'translateX(0)'}],
+        {duration:160}
+      );
+    }
+    return;
+  }
+
+  /* Mark this exact region as solved. */
+  game.solved.add(id);
+
+  const path=[...$('board').querySelectorAll('path')].find(x=>+x.dataset.id===id);
+  const text=[...$('board').querySelectorAll('text')].find(x=>+x.dataset.id===id);
+
+  if(path){
+    path.setAttribute('fill',colors[(r.number-1)%colors.length]);
+    path.setAttribute('stroke','#ffffff');
+  }
+  if(text) text.textContent='';
+
+  /* Calculate the remaining regions from the solved set.
+     This avoids any counter desynchronisation. */
+  const remaining=game.regions.filter(x=>x.number===game.current && !game.solved.has(x.id)).length;
+  game.counts[game.current]=remaining;
+
+  renderGame();
+
+  /* When the current number reaches zero, unlock the next number. */
+  if(remaining===0){
+    if(game.current < game.p.regions){
+      game.current += 1;
+      renderGame();
+    }else{
+      finish();
+    }
+  }
 }
 
 function renderGame(){
-$('currentNum').textContent=game.current;$('remain').textContent=game.counts[game.current];
-let pct=(game.initial[game.current]-game.counts[game.current])/game.initial[game.current]*100;$('bar').style.width=Math.max(0,Math.min(100,pct))+'%';
-$('palette').innerHTML=Array.from({length:game.p.regions},(_,i)=>i+1).map(n=>`<button class="pnum ${n===game.current?'active':''} ${n<game.current?'done':''} ${n>game.current?'locked':''}" disabled>${n}</button>`).join('');
+  if(!game) return;
+
+  const remaining=game.regions.filter(
+    x=>x.number===game.current && !game.solved.has(x.id)
+  ).length;
+
+  game.counts[game.current]=remaining;
+
+  $('currentNum').textContent=game.current;
+  $('remain').textContent=remaining;
+
+  const total=game.initial[game.current] || 1;
+  const done=total-remaining;
+  const pct=(done/total)*100;
+  $('bar').style.width=Math.max(0,Math.min(100,pct))+'%';
+
+  $('palette').innerHTML=Array.from(
+    {length:game.p.regions},
+    (_,i)=>i+1
+  ).map(n=>`<button type="button" class="pnum ${n===game.current?'active':''} ${n<game.current?'done':''} ${n>game.current?'locked':''}" disabled>${n}</button>`).join('');
 }
 
 function finish(){
-let reward=Math.floor(game.p.reward*mult());player.coins+=reward;player.level=Math.max(player.level,game.p.stage+1);
-if(!player.done.includes(game.p.id))player.done.push(game.p.id);save();renderStats();
-$('reward').textContent=reward;$('modal').classList.add('show')
+  const reward=Math.floor(game.p.reward*mult());
+  player.coins+=reward;
+  player.level=Math.max(player.level,game.p.stage+1);
+  if(!player.done.includes(game.p.id))player.done.push(game.p.id);
+  save();
+  renderStats();
+  $('reward').textContent=reward;
+  $('modal').classList.add('show');
 }
 $('close').onclick=()=>{$('modal').classList.remove('show');show('home');renderHome();renderStats()}
 $('back').onclick=()=>{show('home');renderHome();renderStats()}
