@@ -12,7 +12,15 @@ button{font:inherit} .top{position:sticky;top:0;z-index:5;background:rgba(12,18,
 main{max-width:980px;margin:auto;padding:18px 14px 35px}.screen{display:none}.screen.active{display:block}
 h1{text-align:center;margin:8px 0 4px;font-size:30px}.sub{text-align:center;color:var(--muted);margin-bottom:22px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:13px}.card{background:var(--panel);border:1px solid #273651;border-radius:17px;padding:12px;cursor:pointer}.card:active{transform:scale(.98)}
-.thumb{height:130px;border-radius:12px;background:#0a0f1a;display:grid;place-items:center;overflow:hidden}.thumb svg{width:100%;height:100%}.card h3{margin:10px 2px 4px}.card p{margin:3px 2px;color:var(--muted);font-size:13px}.reward{color:var(--gold)!important;font-weight:800}
+.thumb{height:130px;border-radius:12px;background:#0a0f1a;display:grid;place-items:center;overflow:hidden;position:relative}
+.thumb.gray{filter:grayscale(1);opacity:.48}.lockedCard{cursor:not-allowed;opacity:.8}
+.check{position:absolute;right:8px;top:8px;width:34px;height:34px;border-radius:50%;background:#76d59a;color:#0b2015;display:grid;place-items:center;font-size:23px;font-weight:1000;border:3px solid #fff}
+.lockOverlay{position:absolute;inset:0;display:grid;place-items:center;font-size:36px;background:rgba(8,12,20,.25)}
+.brushButton{border:0;background:#1d2940;color:#fff;padding:8px 11px;border-radius:10px;cursor:pointer;font-weight:900}
+.brushModal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:16px;z-index:30}
+.brushModal.show{display:flex}.brushPanel{background:#151e31;border:1px solid #33425f;border-radius:20px;width:min(520px,100%);max-height:85vh;overflow:auto;padding:18px}
+.brushRow{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #2a3852}
+.brushIcon{font-size:28px;text-align:center}.brushRow small{display:block;color:#9eabc2;margin-top:3px}.brushPrice{color:#ffd45a;font-weight:900}.brushRow.locked{opacity:.48}.thumb svg{width:100%;height:100%}.card h3{margin:10px 2px 4px}.card p{margin:3px 2px;color:var(--muted);font-size:13px}.reward{color:var(--gold)!important;font-weight:800}
 .gamebar{display:flex;align-items:center;gap:10px;margin-bottom:10px}.back{border:0;background:var(--panel2);color:#fff;padding:10px 13px;border-radius:11px;cursor:pointer}.current{flex:1;text-align:center}.num{font-size:30px;font-weight:950;line-height:1}.remain{color:var(--muted);font-size:13px;margin-top:3px}
 .progress{height:8px;background:#25324a;border-radius:99px;overflow:hidden;margin:8px 0 13px}.progress i{display:block;height:100%;width:0;background:var(--accent);transition:.15s}
 .palette{display:flex;gap:7px;overflow-x:auto;padding:4px 1px 11px;scrollbar-width:none}.palette::-webkit-scrollbar{display:none}.pnum{min-width:42px;height:42px;border:1px solid #33425f;background:#182239;color:#fff;border-radius:10px;font-weight:900}.pnum.active{border-color:#8090ff;box-shadow:0 0 0 2px rgba(109,131,255,.18)}.pnum.done{opacity:.35;text-decoration:line-through}.pnum.locked{opacity:.28}
@@ -24,17 +32,14 @@ h1{text-align:center;margin:8px 0 4px;font-size:30px}.sub{text-align:center;colo
 </style>
 </head>
 <body>
-<header class="top"><div class="topin"><div class="brand">🎨 Color Quest</div><div class="stats"><div class="pill">🪙 <b id="coins">0</b></div><div class="pill">⭐ Lv <b id="level">1</b></div><div class="pill">🖌️ ×<b id="mult">1.0</b></div></div></div></header>
+<header class="top"><div class="topin"><div class="brand">🎨 Color Quest</div><div class="stats"><div class="pill">🪙 <b id="coins">0</b></div><div class="pill">⭐ Lv <b id="level">1</b></div><button id="brushOpen" class="brushButton">🖌️ ×<b id="mult">1.0</b></button></div></div></header>
 
 <main>
 <section id="home" class="screen active">
 <h1>Color by Number</h1>
 <div class="sub">Find every region of the current number. Finish the whole picture to earn Coins.</div>
 <div id="cards" class="cards"></div>
-<div class="bottom">
-<div class="brow"><b>Brush Power</b><span>Level <b id="bl">1</b> · ×<b id="bm">1.0</b></span></div>
-<button id="upHome" class="upgrade">Upgrade Brush</button>
-</div>
+<div class="bottom"><div class="brow"><b>Brush Power</b><span>Level <b id="bl">1</b> · ×<b id="bm">1.0</b></span></div></div>
 </section>
 
 <section id="game" class="screen">
@@ -43,7 +48,7 @@ h1{text-align:center;margin:8px 0 4px;font-size:30px}.sub{text-align:center;colo
 <div id="palette" class="palette"></div>
 <div class="canvasWrap"><svg id="board" class="board" viewBox="0 0 600 600" aria-label="Color by number puzzle"></svg></div>
 <div class="hint">Tap the matching numbered region. Other numbers are locked until the current number is complete.</div>
-<div class="bottom"><div class="brow"><b>Brush</b><span>Lv <b id="gbl">1</b> · ×<b id="gbm">1.0</b></span></div><button id="upGame" class="upgrade">Upgrade Brush</button></div>
+<div class="bottom"><div class="brow"><b>Brush</b><span>Lv <b id="gbl">1</b> · ×<b id="gbm">1.0</b></span></div></div>
 </section>
 </main>
 
@@ -56,26 +61,45 @@ const brushMult=[1,1.1,1.5,1.9,2.3,2.7,3.1,3.5,3.9,4.3];
 const brushCost=[0,300,1000,2500,6000,15000,40000,100000,250000,700000];
 
 const puzzles=[
-{id:'flower',name:'Flower',stage:1,reward:60,regions:18,kind:'flower'},
-{id:'cat',name:'Cute Cat',stage:2,reward:130,regions:30,kind:'cat'},
-{id:'landscape',name:'Mountain Lake',stage:3,reward:260,regions:45,kind:'landscape'},
-{id:'castle',name:'Magic Castle',stage:4,reward:450,regions:65,kind:'castle'}
+{id:'flower',name:'Flower',stage:1,reward:60,regions:18,kind:'flower',unlockAt:1},
+{id:'cat',name:'Cute Cat',stage:2,reward:130,regions:30,kind:'cat',unlockAt:2},
+{id:'landscape',name:'Mountain Lake',stage:3,reward:260,regions:45,kind:'landscape',unlockAt:3},
+{id:'castle',name:'Magic Castle',stage:4,reward:450,regions:65,kind:'castle',unlockAt:4}
 ];
 
-let player=JSON.parse(localStorage.getItem('colorQuest'))||{coins:0,level:1,brush:1,done:[]};
+let player=JSON.parse(localStorage.getItem('colorQuest'))||{coins:0,level:1,brush:1,done:[],progress:{}};
 let game=null;
 
 function save(){localStorage.setItem('colorQuest',JSON.stringify(player))}
 function mult(){return brushMult[player.brush-1]}
+const brushBenefits=[
+'Base reward ×1.0','Rewards ×1.1','Rewards ×1.5','Rewards ×1.9','Rewards ×2.3',
+'Rewards ×2.7','Rewards ×3.1','Rewards ×3.5','Rewards ×3.9','Rewards ×4.3'
+];
+function renderBrushList(){
+ $('brushList').innerHTML=brushMult.map((m,i)=>{
+  const level=i+1,owned=player.brush>=level,unlocked=player.level>=level;
+  const cost=level===1?0:brushCost[level-1];
+  const state=owned?'✓ Owned':!unlocked?'🔒 Unlocks at Stage '+level:'Available';
+  return `<div class="brushRow ${!unlocked?'locked':''}">
+   <div class="brushIcon">🖌️</div>
+   <div><b>Level ${level}</b><small>${brushBenefits[i]} · ${state}</small></div>
+   <div class="brushPrice">${level===1?'Free':cost.toLocaleString()+' 🪙'}</div>
+  </div>`;
+ }).join('');
+}
+$('brushOpen').onclick=()=>{$('brushModal').classList.add('show');renderBrushList()};
+$('brushClose').onclick=()=>{$('brushModal').classList.remove('show')};
+
 function renderStats(){
 $('coins').textContent=player.coins.toLocaleString();$('level').textContent=player.level;
 $('mult').textContent=mult().toFixed(1);$('bl').textContent=player.brush;$('bm').textContent=mult().toFixed(1);
 $('gbl').textContent=player.brush;$('gbm').textContent=mult().toFixed(1);
-updateUpgrade('upHome');updateUpgrade('upGame');
+
 }
 function updateUpgrade(id){let b=$(id);if(!b)return;if(player.brush>=10){b.textContent='MAX LEVEL';b.disabled=true;return}let n=player.brush+1,c=brushCost[n-1];b.textContent=`Upgrade → Level ${n} · ${c.toLocaleString()} 🪙`;b.disabled=player.coins<c}
 function upgrade(){if(player.brush>=10)return;let c=brushCost[player.brush];if(player.coins<c)return;player.coins-=c;player.brush++;save();renderStats()}
-$('upHome').onclick=upgrade;$('upGame').onclick=upgrade;
+
 
 function svgThumb(kind){
 return `<svg viewBox="0 0 240 150" xmlns="http://www.w3.org/2000/svg"><rect width="240" height="150" fill="#f7f7f2"/>${art(kind,120,75,true)}</svg>`
@@ -88,36 +112,47 @@ return `<rect x="20" y="55" width="200" height="90" rx="4" fill="#c7a1e8"/><path
 }
 
 function renderHome(){
-$('cards').innerHTML=puzzles.map(p=>`<div class="card" data-id="${p.id}"><div class="thumb">${svgThumb(p.kind)}</div><h3>${p.name}</h3><p>Stage ${p.stage} · ${p.regions} regions</p><p class="reward">Reward ${p.reward} 🪙 × Brush</p></div>`).join('');
-document.querySelectorAll('.card').forEach(c=>c.onclick=()=>start(puzzles.find(p=>p.id===c.dataset.id)));
+$('cards').innerHTML=puzzles.map(p=>{
+ const completed=player.done.includes(p.id);
+ const unlocked=player.level>=p.unlockAt;
+ const saved=!!player.progress[p.id];
+ const status=completed
+  ? '<span style="color:#76d59a;font-weight:900">✓ Completed</span>'
+  : !unlocked
+   ? '<span style="color:#8995aa;font-weight:900">🔒 Locked</span>'
+   : saved
+    ? '<span style="color:#ffd45a;font-weight:900">▶ Continue</span>'
+    : '<span style="color:#9eabc2">▶ Start</span>';
+ return `<div class="card ${!unlocked?'lockedCard':''}" data-id="${p.id}">
+  <div class="thumb ${!unlocked?'gray':''}">${svgThumb(p.kind)}
+   ${completed?'<div class="check">✓</div>':''}
+   ${!unlocked?'<div class="lockOverlay">🔒</div>':''}
+  </div>
+  <h3>${p.name}</h3><p>Stage ${p.stage} · ${p.regions} regions</p>
+  <p class="reward">Reward ${p.reward} 🪙 × Brush</p><p>${status}</p>
+ </div>`;
+}).join('');
+document.querySelectorAll('.card').forEach(c=>c.onclick=()=>{
+ const p=puzzles.find(x=>x.id===c.dataset.id);
+ if(player.level<p.unlockAt || player.done.includes(p.id))return;
+ start(p);
+});
 }
-
 function show(name){$('home').classList.toggle('active',name==='home');$('game').classList.toggle('active',name==='game')}
 function start(p){
-const totalCells=144;
-const counts={};
-const base=Math.floor(totalCells/p.regions);
-let extra=totalCells-(base*p.regions);
-
-for(let n=1;n<=p.regions;n++){
-  counts[n]=base+(n<=extra?1:0);
+ const saved=player.progress[p.id];
+ if(saved){
+  game={p,counts:{...saved.counts},initial:{...saved.initial},current:saved.current,
+        solved:new Set(saved.solved||[]),regions:saved.regions};
+ }else{
+  const totalCells=400,counts={},base=Math.floor(totalCells/p.regions);
+  let extra=totalCells-base*p.regions;
+  for(let n=1;n<=p.regions;n++)counts[n]=base+(n<=extra?1:0);
+  game={p,counts,initial:{...counts},current:1,solved:new Set(),regions:makeRegions(p.regions,counts,totalCells)};
+  saveGameProgress();
+ }
+ show('game');draw();renderGame();renderStats();
 }
-
-game={
-  p,
-  counts,
-  initial:{...counts},
-  current:1,
-  solved:new Set(),
-  regions:makeRegions(p.regions,counts,totalCells)
-};
-
-show('game');
-draw();
-renderGame();
-renderStats();
-}
-
 function makeRegions(n,counts,total){
 const regions=[];
 const cols=12,rows=12;
@@ -270,6 +305,16 @@ function renderGame(){
   ).map(n=>`<button type="button" class="pnum ${n===game.current?'active':''} ${n<game.current?'done':''} ${n>game.current?'locked':''}" disabled>${n}</button>`).join('');
 }
 
+function saveGameProgress(){
+ if(!game)return;
+ player.progress[game.p.id]={
+  counts:{...game.counts},initial:{...game.initial},current:game.current,
+  solved:[...game.solved],regions:game.regions
+ };
+ save();
+}
+function clearGameProgress(id){delete player.progress[id];save();}
+
 function finish(){
   const reward=Math.floor(game.p.reward*mult());
   player.coins+=reward;
@@ -285,5 +330,13 @@ $('back').onclick=()=>{show('home');renderHome();renderStats()}
 
 renderHome();renderStats();
 </script>
+
+<div id="brushModal" class="brushModal">
+ <div class="brushPanel">
+  <div class="brow"><h2 style="margin:0">🖌️ Brush Upgrades</h2><button id="brushClose" class="back">Close</button></div>
+  <p style="color:#9eabc2">The Brush increases rewards from pictures and other rewards.</p>
+  <div id="brushList"></div>
+ </div>
+</div>
 </body>
 </html>
