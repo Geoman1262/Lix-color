@@ -1,37 +1,115 @@
 <!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lix Color</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lix Color — Real Shapes Prototype</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:system-ui;background:#eef5ff;color:#172033}.app{max-width:760px;margin:auto;padding:14px}
-.top,.gameTop,.modalHead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.logo{font-size:25px;font-weight:900}.coins{background:#fff;border:1px solid #dbe5f3;border-radius:18px;padding:8px 12px;font-weight:800}
-button{font:inherit;cursor:pointer}.brush,.primary{border:0;border-radius:13px;padding:10px 13px;background:#172033;color:#fff;font-weight:900}.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:14px 0}.tab{border:1px solid #d7e1ef;background:#fff;border-radius:13px;padding:11px;font-weight:800}.tab.active{background:#172033;color:#fff}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.card{background:#fff;border:1px solid #dce5f1;border-radius:18px;overflow:hidden}.thumb{aspect-ratio:1.1;background:#f5f8fc;display:grid;place-items:center;position:relative}.thumb svg{width:90%;height:90%}.meta{padding:10px}.title{font-weight:900}.sub{font-size:12px;color:#69758a;margin-top:3px}.badge,.lock{position:absolute;background:#fff;border:1px solid #dbe4ef;border-radius:10px;padding:5px 8px;font-weight:900}.badge{top:8px;left:8px}.lock{font-size:28px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}.card.locked .thumb{filter:grayscale(.7);opacity:.75}.card button{margin:0 10px 11px;width:calc(100% - 20px);border:0;border-radius:12px;padding:10px;font-weight:900;background:#eaf1fb}
-.overlay{position:fixed;inset:0;background:#0b1220aa;display:none;align-items:center;justify-content:center;padding:16px;z-index:20}.modal{background:#fff;border-radius:20px;max-width:680px;width:100%;max-height:92vh;overflow:auto;padding:16px}.close,.back{border:0;background:#eef2f7;border-radius:11px;padding:9px 12px;font-weight:900}.levels{display:grid;gap:8px}.level{border:1px solid #dce5ef;border-radius:13px;padding:10px;display:flex;justify-content:space-between;align-items:center}.level.locked{opacity:.55}.level button{border:0;border-radius:10px;padding:8px 10px;font-weight:900;background:#172033;color:#fff}
-.numberBtns{display:flex;gap:6px;overflow:auto;padding:5px 0 10px}.num{min-width:42px;border:1px solid #d8e2ef;background:#fff;border-radius:10px;padding:8px;font-weight:900}.num.active{background:#172033;color:#fff}.num.done{background:#dff6e6}.canvas{background:#fff;border:1px solid #dce5ef;border-radius:20px;padding:8px}.canvas svg{width:100%;display:block;touch-action:manipulation}.region{stroke:#fff;stroke-width:1.2;cursor:pointer}.hint{text-align:center;color:#68748a;font-size:12px;margin:8px}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#172033;color:#fff;padding:10px 14px;border-radius:13px;font-weight:800;display:none;z-index:40}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#eef5ff;color:#172033}
+.app{max-width:760px;margin:auto;padding:14px}.top,.gameTop{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.logo{font-size:25px;font-weight:900}.coins{background:#fff;border:1px solid #dbe5f3;border-radius:18px;padding:8px 12px;font-weight:800}
+button{font:inherit;cursor:pointer}.brush,.primary{border:0;border-radius:13px;padding:10px 13px;background:#172033;color:#fff;font-weight:900}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:14px 0}.tab{border:1px solid #d7e1ef;background:#fff;border-radius:13px;padding:11px;font-weight:800}.tab.active{background:#172033;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.card{background:#fff;border:1px solid #dce5f1;border-radius:18px;overflow:hidden}
+.thumb{aspect-ratio:1.1;background:#f5f8fc;display:grid;place-items:center;position:relative}.thumb svg{width:94%;height:94%}
+.meta{padding:10px}.title{font-weight:900}.sub{font-size:12px;color:#69758a;margin-top:3px}.badge,.lock{position:absolute;background:#fff;border:1px solid #dbe4ef;border-radius:10px;padding:5px 8px;font-weight:900}.badge{top:8px;left:8px}.lock{font-size:28px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
+.card.locked .thumb{filter:grayscale(.7);opacity:.75}.card button{margin:0 10px 11px;width:calc(100% - 20px);border:0;border-radius:12px;padding:10px;font-weight:900;background:#eaf1fb}
+.gameTop{margin-bottom:10px}.back{border:0;background:#fff;border:1px solid #dbe4ef;border-radius:11px;padding:9px 12px;font-weight:900}
+.numberBtns{display:flex;gap:6px;overflow:auto;padding:5px 0 10px}.num{min-width:42px;border:1px solid #d8e2ef;background:#fff;border-radius:10px;padding:8px;font-weight:900}.num.active{background:#172033;color:#fff}.num.done{background:#dff6e6}
+.canvas{background:#fff;border:1px solid #dce5ef;border-radius:20px;padding:8px}.canvas svg{width:100%;display:block;touch-action:manipulation}
+.region{stroke:#ffffff;stroke-width:1.2;cursor:pointer;transition:filter .12s}.region:hover{filter:brightness(.97)}
+.region.done{stroke:#fff}.label{font-size:8px;font-weight:900;fill:#27344a;pointer-events:none;text-anchor:middle;dominant-baseline:middle}
+.hint{text-align:center;color:#68748a;font-size:12px;margin:8px}.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#172033;color:#fff;padding:10px 14px;border-radius:13px;font-weight:800;display:none;z-index:40}
 @media(max-width:430px){.grid{grid-template-columns:1fr}}
-</style></head><body>
-<div class="app" id="app"></div><div class="overlay" id="overlay"><div class="modal" id="modal"></div></div><div class="toast" id="toast"></div>
+</style>
+</head>
+<body>
+<div class="app" id="app"></div><div class="toast" id="toast"></div>
 <script>
-const brushes=[{m:1,u:1,c:0},{m:1.1,u:5,c:500},{m:1.5,u:12,c:2500},{m:1.9,u:19,c:7500},{m:2.3,u:26,c:20000},{m:2.7,u:33,c:50000},{m:3.1,u:40,c:125000},{m:3.5,u:47,c:300000},{m:3.9,u:54,c:750000},{m:4.3,u:61,c:1800000}];
-const pc=[5000,7500,10000,12500,15000,20000,25000,30000,40000,50000,60000,75000,90000,110000,135000,165000,200000,250000,300000,400000];
-const kinds=["Flower","Cat","Mountain","Castle","Dragon","City","Unicorn","Ocean","Space","Lion"];
-const cols=["#ffd54f","#ff8a80","#80cbc4","#81d4fa","#b39ddb","#ffab91","#a5d6a7","#90caf9","#ce93d8","#f48fb1"];
-let s=JSON.parse(localStorage.getItem("lixColorV9")||"null")||{coins:0,stage:1,brush:1,completed:{},progress:{},premiumOpened:{},weeklyOpened:false};
-const save=()=>localStorage.setItem("lixColorV9",JSON.stringify(s)), fmt=n=>Math.round(n).toLocaleString();
-function toast(x){let t=document.getElementById("toast");t.textContent=x;t.style.display="block";setTimeout(()=>t.style.display="none",1600)}
-function art(k,seed){let q="";for(let i=0;i<10;i++){let x=25+(i*31+seed*7)%150,y=25+(i*47+seed*11)%145,r=9+i%4*4;q+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${cols[(i+seed)%cols.length]}"/>`}return `<svg viewBox="0 0 200 200"><rect x="5" y="5" width="190" height="190" rx="28" fill="#f7f9fc"/>${q}<path d="M25 155 Q65 110 100 145 T175 135" fill="none" stroke="#7c8a9d" stroke-width="8" stroke-linecap="round"/><text x="100" y="184" text-anchor="middle" font-size="12" font-weight="800" fill="#637083">${k}</text></svg>`}
-function card(cat,i){let open=cat==="normal"?i<=s.stage:cat==="premium"?s.stage>=15&&!!s.premiumOpened[i]:s.stage>=30&&i===1&&s.weeklyOpened;let done=!!s.completed[cat+i];let label=cat==="normal"?(i<s.stage?"Completed":"Stage "+i):cat==="premium"?(s.premiumOpened[i]?"Unlocked":"Unlock at Stage 15"):(i===1?"This Week":"Next Week");let action=open?"Play":cat==="premium"&&s.stage>=15?"Open":cat==="weekly"&&i===1&&s.stage>=30?"Open":"Locked";return `<div class="card ${open?"":"locked"}"><div class="thumb">${art(kinds[(i-1)%kinds.length],i)}${!open?'<div class="lock">🔒</div>':""}${done?'<div class="badge">✓ Completed</div>':""}</div><div class="meta"><div class="title">${cat==="normal"?"Stage "+i:cat==="premium"?"Premium "+i:"Weekly "+i}</div><div class="sub">${label}</div></div><button class="${open?"primary":""}" data-cat="${cat}" data-i="${i}">${action}</button></div>`}
-function home(cat="normal"){let max=cat==="normal"?150:cat==="premium"?20:52,html="";for(let i=1;i<=max;i++)html+=card(cat,i);document.getElementById("app").innerHTML=`<div class="top"><div class="logo">Lix Color</div><div class="coins">🪙 ${fmt(s.coins)}</div><button class="brush" id="brush">🖌️ Lv.${s.brush} ×${brushes[s.brush-1].m}</button></div><div class="tabs"><button class="tab ${cat==="normal"?"active":""}" data-tab="normal">Normal</button><button class="tab ${cat==="premium"?"active":""}" data-tab="premium">Premium</button><button class="tab ${cat==="weekly"?"active":""}" data-tab="weekly">Weekly</button></div><div class="grid">${html}</div>`;document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>home(b.dataset.tab));document.getElementById("brush").onclick=openBrush;document.querySelectorAll(".card button").forEach(b=>b.onclick=()=>cardClick(b.dataset.cat,+b.dataset.i))}
-function cardClick(cat,i){if(cat==="normal"){if(i>s.stage)return toast("Locked");return game(cat,i)}if(cat==="premium"){if(s.stage<15)return toast("Unlocks at Stage 15");if(!s.premiumOpened[i]){let c=pc[i-1];if(s.coins<c)return toast("Not enough Coins");s.coins-=c;s.premiumOpened[i]=true;save();home("premium");return}return game(cat,i)}if(s.stage<30)return toast("Unlocks at Stage 30");if(i!==1)return toast("Next week is locked");if(!s.weeklyOpened){if(s.coins<3000)return toast("3,000 Coins required");s.coins-=3000;s.weeklyOpened=true;save()}game(cat,i)}
-function openBrush(){document.getElementById("modal").innerHTML=`<div class="modalHead"><h2>Brush Upgrade</h2><button class="close" id="x">Close</button></div>${brushes.map((b,i)=>`<div class="level ${s.brush<i+1?"locked":""}"><div><b>Level ${i+1}</b> ×${b.m}<br><small>Stage ${b.u} · ${b.c?fmt(b.c)+" Coins":"Free"}</small></div><button data-l="${i+1}">${s.brush>=i+1?"Owned":s.stage<b.u?"Locked":"Buy"}</button></div>`).join("")}`;document.getElementById("overlay").style.display="flex";document.getElementById("x").onclick=closeModal;document.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>buyBrush(+b.dataset.l))}
-function closeModal(){document.getElementById("overlay").style.display="none"}document.getElementById("overlay").onclick=e=>{if(e.target.id==="overlay")closeModal()};
-function buyBrush(l){let b=brushes[l-1];if(l<=s.brush||s.stage<b.u)return;if(s.coins<b.c)return toast("Not enough Coins");s.coins-=b.c;s.brush=l;save();closeModal();home();toast("Brush upgraded")}
-function regions(total,n){let c=Math.ceil(Math.sqrt(total)),r=Math.ceil(total/c),a=[];for(let i=0;i<total;i++){let x=i%c,y=Math.floor(i/c);a.push({i,x:x*200/c,y:y*200/r,w:200/c,h:200/r,n:(i%n)+1,done:false})}return a}
-function game(cat,i){let key=cat+i,old=s.progress[key],total=cat==="weekly"?600:cat==="premium"?Math.min(260,80+i*7):Math.min(180,35+i*2),n=cat==="weekly"?100:Math.min(12,3+Math.floor(i/12)),rs=old?.regions||regions(total,n);let g={cat,i,key,regions:rs,current:old?.current||1};rs.forEach(r=>r.done=!!r.done);draw(g)}
-function draw(g){let rem=g.regions.filter(r=>!r.done).length,nums=[...new Set(g.regions.map(r=>r.n))].sort((a,b)=>a-b);let ns=nums.map(n=>{let z=g.regions.filter(r=>r.n===n&&!r.done).length;return `<button class="num ${g.current===n?"active":""} ${z===0?"done":""}" data-n="${n}">${n}${g.cat==="weekly"?`<small style="display:block">${z}</small>`:""}</button>`}).join("");let paths=g.regions.map(r=>`<path class="region" d="M${r.x} ${r.y}h${r.w}v${r.h}H${r.x}Z" fill="${r.done?cols[(r.n-1)%cols.length]:"#e9eef5"}" data-i="${r.i}" data-n="${r.n}"/>`).join("");document.getElementById("app").innerHTML=`<div class="gameTop"><button class="back" id="back">← Back</button><b>${cat==="weekly"?"Weekly":"Picture"} · ${g.regions.length-rem}/${g.regions.length}</b><div class="coins">🪙 ${fmt(s.coins)}</div></div><div class="numberBtns">${ns}</div><div class="canvas"><svg viewBox="0 0 200 200">${paths}</svg></div><div class="hint">${g.cat==="weekly"?"Choose any number anytime.":"Finish the current number before the next."}</div>`;document.getElementById("back").onclick=()=>{persist(g);home(g.cat)};document.querySelectorAll(".num").forEach(b=>b.onclick=()=>{let n=+b.dataset.n;if(g.cat!=="weekly"&&n>g.current&&g.regions.some(r=>r.n===g.current&&!r.done))return toast("Finish current number");g.current=n;persist(g);draw(g)});document.querySelectorAll(".region").forEach(e=>e.onclick=()=>tap(g,+e.dataset.i,+e.dataset.n))}
-function persist(g){s.progress[g.key]={regions:g.regions,current:g.current};save()}
-function tap(g,i,n){let r=g.regions[i];if(r.done)return;if(g.cat!=="weekly"&&n!==g.current)return toast("Wrong number");r.done=true;persist(g);if(g.cat!=="weekly"&&!g.regions.some(x=>x.n===g.current&&!x.done)){let nx=g.regions.find(x=>!x.done)?.n;if(nx)g.current=nx}if(g.regions.every(x=>x.done))finish(g);else draw(g)}
-function finish(g){let m=brushes[s.brush-1].m,gain;if(g.cat==="normal")gain=Math.round((60+(g.i-1)*30)*m);else if(g.cat==="premium")gain=pc[g.i-1]+Math.round(pc[g.i-1]*.2*m);else gain=Math.round(4000*m);s.coins+=gain;s.completed[g.key]=true;delete s.progress[g.key];if(g.cat==="normal"&&g.i===s.stage)s.stage=Math.min(150,s.stage+1);if(g.cat==="weekly")s.weeklyOpened=false;save();home(g.cat);toast("Completed! +"+fmt(gain)+" Coins")}
+const brush={m:1};
+const pictureData={
+  1:{
+    title:"Flower",
+    reward:60,
+    regions:[
+      {n:1,d:"M100 25 C84 18 69 29 72 46 C57 35 40 42 42 59 C28 55 20 67 29 80 C42 98 69 89 85 75 L100 60 Z",x:58,y:58},
+      {n:1,d:"M100 25 C116 18 131 29 128 46 C143 35 160 42 158 59 C172 55 180 67 171 80 C158 98 131 89 115 75 L100 60 Z",x:142,y:58},
+      {n:2,d:"M100 56 C82 42 60 51 61 71 C62 92 80 105 100 105 C120 105 138 92 139 71 C140 51 118 42 100 56 Z",x:100,y:76},
+      {n:3,d:"M100 100 C91 112 85 130 84 151 L116 151 C115 130 109 112 100 100 Z",x:100,y:132},
+      {n:4,d:"M84 146 C69 143 53 149 43 163 C59 164 74 164 89 162 Z",x:67,y:157},
+      {n:4,d:"M116 146 C131 143 147 149 157 163 C141 164 126 164 111 162 Z",x:133,y:157},
+      {n:5,d:"M87 151 C89 169 87 179 80 187 L100 187 L120 187 C113 179 111 169 113 151 Z",x:100,y:174}
+    ]
+  },
+  2:{
+    title:"Cute Cat",
+    reward:90,
+    regions:[
+      {n:1,d:"M52 70 L42 25 L79 48 C92 42 108 42 121 48 L158 25 L148 70 C157 84 158 104 151 119 C142 138 122 147 100 147 C78 147 58 138 49 119 C42 104 43 84 52 70 Z",x:100,y:91},
+      {n:2,d:"M42 25 L79 48 C68 51 57 58 52 70 Z",x:57,y:43},
+      {n:2,d:"M158 25 L121 48 C132 51 143 58 148 70 Z",x:143,y:43},
+      {n:3,d:"M64 84 C69 76 79 76 84 84 C79 92 69 92 64 84 Z",x:74,y:84},
+      {n:3,d:"M116 84 C121 76 131 76 136 84 C131 92 121 92 116 84 Z",x:126,y:84},
+      {n:4,d:"M94 101 Q100 96 106 101 L100 108 Z",x:100,y:102},
+      {n:5,d:"M100 108 C92 111 91 119 100 124 C109 119 108 111 100 108 Z",x:100,y:117},
+      {n:6,d:"M72 111 L42 104 M72 119 L38 121 M128 111 L158 104 M128 119 L162 121",x:100,y:115},
+      {n:7,d:"M74 147 C79 159 87 166 100 168 C113 166 121 159 126 147 C116 152 84 152 74 147 Z",x:100,y:158}
+    ]
+  },
+  3:{
+    title:"Mountain Lake",
+    reward:120,
+    regions:[
+      {n:1,d:"M18 139 L64 65 L94 104 L121 57 L181 139 Z",x:100,y:111},
+      {n:2,d:"M64 65 L94 104 L83 119 L52 139 L18 139 Z",x:54,y:109},
+      {n:3,d:"M121 57 L181 139 L113 139 L105 115 Z",x:143,y:110},
+      {n:4,d:"M18 139 L181 139 L181 178 L18 178 Z",x:100,y:157},
+      {n:5,d:"M18 139 L64 65 L71 76 L42 139 Z",x:39,y:115},
+      {n:5,d:"M121 57 L181 139 L169 139 L132 86 Z",x:151,y:107},
+      {n:6,d:"M18 139 Q50 129 82 139 T145 139 T181 139 L181 151 L18 151 Z",x:100,y:145}
+    ]
+  }
+};
+const state=JSON.parse(localStorage.getItem("lixColorV10")||"null")||{coins:0,stage:1,progress:{},completed:{}};
+const save=()=>localStorage.setItem("lixColorV10",JSON.stringify(state));
+const toast=x=>{const t=document.getElementById("toast");t.textContent=x;t.style.display="block";setTimeout(()=>t.style.display="none",1500)};
+const colors={1:"#ffd54f",2:"#ff9f80",3:"#80cbc4",4:"#81d4fa",5:"#b39ddb",6:"#a5d6a7",7:"#f48fb1"};
+function thumb(p){
+  return `<svg viewBox="0 0 200 200">${p.regions.map(r=>`<path d="${r.d}" fill="#dfe6ef" stroke="#fff" stroke-width="1"/>`).join("")}</svg>`;
+}
+function home(){
+  let cards="";
+  for(let i=1;i<=3;i++){let p=pictureData[i],locked=i>state.stage,done=!!state.completed["normal"+i];cards+=`<div class="card ${locked?"locked":""}"><div class="thumb">${thumb(p)}${locked?'<div class="lock">🔒</div>':""}${done?'<div class="badge">✓ Completed</div>':""}</div><div class="meta"><div class="title">Stage ${i} · ${p.title}</div><div class="sub">${locked?"Locked":"Reward "+p.reward+" Coins"}</div></div><button class="${locked?"":"primary"} data-i="${i}">${locked?"Locked":"Play"}</button></div>`}
+  document.getElementById("app").innerHTML=`<div class="top"><div class="logo">Lix Color</div><div class="coins">🪙 ${state.coins}</div></div><div class="grid">${cards}</div>`;
+  document.querySelectorAll("[data-i]").forEach(b=>b.onclick=()=>{let i=+b.dataset.i;if(i<=state.stage)start(i);else toast("Locked")});
+}
+function start(i){
+  const p=pictureData[i],key="normal"+i,old=state.progress[key];
+  const regions=old?old.regions:p.regions.map(r=>({...r,done:false}));
+  draw({i,key,regions,current:old?.current||1});
+}
+function persist(g){state.progress[g.key]={regions:g.regions,current:g.current};save()}
+function draw(g){
+  const nums=[...new Set(g.regions.map(r=>r.n))].sort((a,b)=>a-b);
+  const buttons=nums.map(n=>{const rem=g.regions.filter(r=>r.n===n&&!r.done).length;return `<button class="num ${g.current===n?"active":""} ${rem===0?"done":""}" data-n="${n}">${n}<small style="display:block">${rem}</small></button>`}).join("");
+  const svg=g.regions.map((r,i)=>`<g><path class="region" d="${r.d}" fill="${r.done?colors[r.n]:"#e5ebf2"}" data-i="${i}" data-n="${r.n}"/><text class="label" x="${r.x}" y="${r.y}">${r.done?"":r.n}</text></g>`).join("");
+  const done=g.regions.filter(r=>r.done).length;
+  document.getElementById("app").innerHTML=`<div class="gameTop"><button class="back" id="back">← Back</button><b>${pictureData[g.i].title} · ${done}/${g.regions.length}</b><div class="coins">🪙 ${state.coins}</div></div><div class="numberBtns">${buttons}</div><div class="canvas"><svg viewBox="0 0 200 200" aria-label="${pictureData[g.i].title}">${svg}</svg></div><div class="hint">Finish number ${g.current}. Your progress is saved automatically.</div>`;
+  document.getElementById("back").onclick=()=>{persist(g);home()};
+  document.querySelectorAll(".num").forEach(b=>b.onclick=()=>{const n=+b.dataset.n;if(n>g.current&&g.regions.some(r=>r.n===g.current&&!r.done))return toast("Finish the current number first");g.current=n;persist(g);draw(g)});
+  document.querySelectorAll(".region").forEach(e=>e.onclick=()=>tap(g,+e.dataset.i,+e.dataset.n));
+}
+function tap(g,i,n){
+  const r=g.regions[i];if(r.done)return;
+  if(n!==g.current)return toast("Wrong number");
+  r.done=true;persist(g);
+  if(!g.regions.some(x=>x.n===g.current&&!x.done)){const next=g.regions.find(x=>!x.done)?.n;if(next)g.current=next}
+  if(g.regions.every(x=>x.done))finish(g);else draw(g);
+}
+function finish(g){
+  state.coins+=pictureData[g.i].reward;state.completed[g.key]=true;delete state.progress[g.key];
+  if(g.i===state.stage)state.stage=Math.min(3,state.stage+1);save();home();toast("Completed! +"+pictureData[g.i].reward+" Coins");
+}
 home();
-</script></body></html>
+</script>
+</body></html>
