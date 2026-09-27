@@ -94,23 +94,64 @@ document.querySelectorAll('.card').forEach(c=>c.onclick=()=>start(puzzles.find(p
 
 function show(name){$('home').classList.toggle('active',name==='home');$('game').classList.toggle('active',name==='game')}
 function start(p){
-const counts={};let total=0;
-for(let n=1;n<=p.regions;n++){let c=n===p.regions?Math.max(1,400-total):Math.max(1,Math.floor(400/p.regions));counts[n]=c;total+=c}
-game={p,counts,initial:{...counts},current:1,solved:new Set(),regions:makeRegions(p.regions)};
-show('game');draw();renderGame();renderStats()
+const totalCells=400;
+const counts={};
+const base=Math.floor(totalCells/p.regions);
+let extra=totalCells-(base*p.regions);
+
+for(let n=1;n<=p.regions;n++){
+  counts[n]=base+(n<=extra?1:0);
 }
 
-function makeRegions(n){
-const regions=[];const cols=10,rows=10;let i=0;
-for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){if(i>=n)break;let num=(i%n)+1,x=c*60,y=r*60;
-let wob=((i*17)%13)-6;
-regions.push({id:i,number:num,x,y,w:60,h:60,rx:wob});i++}
-return regions
+game={
+  p,
+  counts,
+  initial:{...counts},
+  current:1,
+  solved:new Set(),
+  regions:makeRegions(p.regions,counts,totalCells)
+};
+
+show('game');
+draw();
+renderGame();
+renderStats();
+}
+
+function makeRegions(n,counts,total){
+const regions=[];
+const cols=20,rows=20;
+let numbers=[];
+
+for(let number=1;number<=n;number++){
+  for(let i=0;i<counts[number];i++) numbers.push(number);
+}
+
+/* Shuffle the numbers so equal numbers are distributed across the picture. */
+for(let i=numbers.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [numbers[i],numbers[j]]=[numbers[j],numbers[i]];
+}
+
+for(let i=0;i<total;i++){
+  const r=Math.floor(i/cols);
+  const c=i%cols;
+  const x=c*30;
+  const y=r*30;
+  regions.push({
+    id:i,
+    number:numbers[i],
+    x,y,w:30,h:30,
+    rx:((i*17)%7)-3
+  });
+}
+
+return regions;
 }
 
 function regionPath(r){
-let x=r.x,y=r.y,w=r.w,h=r.h,d=7;
-return `M ${x+d+r.rx} ${y+2} L ${x+w-3} ${y+5} L ${x+w-5} ${y+h-d} L ${x+w-d} ${y+h-3} L ${x+4} ${y+h-5} L ${x+2} ${y+d} Z`
+let x=r.x,y=r.y,w=r.w,h=r.h,d=3;
+return `M ${x+d+r.rx} ${y+1} L ${x+w-1} ${y+2} L ${x+w-2} ${y+h-d} L ${x+w-d} ${y+h-1} L ${x+2} ${y+h-2} L ${x+1} ${y+d} Z`
 }
 
 function draw(){
@@ -120,7 +161,7 @@ const path=document.createElementNS('http://www.w3.org/2000/svg','path');
 path.setAttribute('d',regionPath(r));path.dataset.id=r.id;path.dataset.number=r.number;
 path.setAttribute('fill','#eef1f5');path.setAttribute('stroke','#9aa6b8');path.setAttribute('stroke-width','1.5');
 path.style.cursor='pointer';path.addEventListener('click',()=>tapRegion(r.id));svg.appendChild(path);
-const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x',r.x+30);t.setAttribute('y',r.y+35);t.setAttribute('text-anchor','middle');t.setAttribute('font-size','14');t.setAttribute('font-weight','800');t.textContent=r.number;t.dataset.id=r.id;t.style.pointerEvents='none';svg.appendChild(t);
+const t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x',r.x+30);t.setAttribute('y',r.y+35);t.setAttribute('text-anchor','middle');t.setAttribute('font-size','8');t.setAttribute('font-weight','800');t.textContent=r.number;t.dataset.id=r.id;t.style.pointerEvents='none';svg.appendChild(t);
 });
 }
 
