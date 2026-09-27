@@ -17,7 +17,7 @@ h1{text-align:center;margin:8px 0 4px;font-size:30px}.sub{text-align:center;colo
 .check{position:absolute;right:8px;top:8px;width:34px;height:34px;border-radius:50%;background:#76d59a;color:#0b2015;display:grid;place-items:center;font-size:23px;font-weight:1000;border:3px solid #fff}
 .lockOverlay{position:absolute;inset:0;display:grid;place-items:center;font-size:36px;background:rgba(8,12,20,.25)}
 .brushButton{border:0;background:#1d2940;color:#fff;padding:8px 11px;border-radius:10px;cursor:pointer;font-weight:900;min-height:42px}
-.brushModal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:16px;z-index:30}
+.brushModal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:16px;z-index:9999}
 .brushModal.show{display:flex}.brushPanel{background:#151e31;border:1px solid #33425f;border-radius:20px;width:min(520px,100%);max-height:85vh;overflow:auto;padding:18px}
 .brushRow{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #2a3852}
 .brushIcon{font-size:28px;text-align:center}.brushRow small{display:block;color:#9eabc2;margin-top:3px}.brushPrice{color:#ffd45a;font-weight:900}.brushRow.locked{opacity:.48}.thumb svg{width:100%;height:100%}.card h3{margin:10px 2px 4px}.card p{margin:3px 2px;color:var(--muted);font-size:13px}.reward{color:var(--gold)!important;font-weight:800}
@@ -38,6 +38,11 @@ h1{text-align:center;margin:8px 0 4px;font-size:30px}.sub{text-align:center;colo
 <section id="home" class="screen active">
 <h1>Color by Number</h1>
 <div class="sub">Find every region of the current number. Finish the whole picture to earn Coins.</div>
+<div id="categoryTabs" style="display:flex;gap:8px;overflow:auto;margin:0 0 14px">
+<button type="button" class="pnum active" data-cat="normal">🎨 Normal</button>
+<button type="button" class="pnum" data-cat="premium">💎 Important</button>
+<button type="button" class="pnum" data-cat="weekly">🏆 Weekly</button>
+</div>
 <div id="cards" class="cards"></div>
 <div class="bottom"><div class="brow"><b>Brush Power</b><span>Level <b id="bl">1</b> · ×<b id="bm">1.0</b></span></div></div>
 </section>
@@ -58,14 +63,24 @@ h1{text-align:center;margin:8px 0 4px;font-size:30px}.sub{text-align:center;colo
 const $=id=>document.getElementById(id);
 const colors=['#f7d64a','#f08a7e','#6bb7ff','#76d59a','#b99cff','#ffad5f','#5ed4cf','#e58bd0','#b8d66b','#8ba8ff','#f4a6b7','#78c8a0'];
 const brushMult=[1,1.1,1.5,1.9,2.3,2.7,3.1,3.5,3.9,4.3];
-const brushCost=[0,300,1000,2500,6000,15000,40000,100000,250000,700000];
+const brushCost=[0,500,2500,7500,20000,50000,125000,300000,750000,1800000];
 const brushUnlockStage=[1,5,12,19,26,33,40,47,54,61];
 
 const puzzles=[
-{id:'flower',name:'Flower',stage:1,reward:60,regions:18,kind:'flower',unlockAt:1},
-{id:'cat',name:'Cute Cat',stage:2,reward:130,regions:30,kind:'cat',unlockAt:2},
-{id:'landscape',name:'Mountain Lake',stage:3,reward:260,regions:45,kind:'landscape',unlockAt:3},
-{id:'castle',name:'Magic Castle',stage:4,reward:450,regions:65,kind:'castle',unlockAt:4}
+{id:'flower',name:'Flower',stage:1,reward:60,regions:18,kind:'flower',unlockAt:1,cat:'normal'},
+{id:'cat',name:'Cute Cat',stage:2,reward:130,regions:30,kind:'cat',unlockAt:2,cat:'normal'},
+{id:'landscape',name:'Mountain Lake',stage:3,reward:260,regions:45,kind:'landscape',unlockAt:3,cat:'normal'},
+{id:'castle',name:'Magic Castle',stage:4,reward:450,regions:65,kind:'castle',unlockAt:4,cat:'normal'},
+{id:'premium1',name:'Golden Lion',stage:15,reward:8000,regions:180,kind:'lion',unlockAt:15,cat:'premium',price:5000},
+{id:'premium2',name:'Royal Palace',stage:18,reward:17000,regions:220,kind:'castle',unlockAt:15,cat:'premium',price:10000},
+{id:'premium3',name:'Dragon Realm',stage:22,reward:45000,regions:280,kind:'dragon',unlockAt:15,cat:'premium',price:25000}
+];
+const weekly=[
+{id:'week1',name:'Weekly Dragon',week:1,regions:500,reward:15000,kind:'dragon'},
+{id:'week2',name:'Weekly City',week:2,regions:550,reward:25000,kind:'city'},
+{id:'week3',name:'Weekly Egypt',week:3,regions:600,reward:40000,kind:'landscape'},
+{id:'week4',name:'Weekly Castle',week:4,regions:650,reward:65000,kind:'castle'},
+{id:'week5',name:'Weekly Master',week:5,regions:700,reward:100000,kind:'dragon'}
 ];
 
 let player=JSON.parse(localStorage.getItem('colorQuest'))||{coins:0,level:1,brush:1,done:[],progress:{}};
@@ -75,6 +90,8 @@ player.brush=Number.isFinite(player.brush)?player.brush:1;
 player.done=Array.isArray(player.done)?player.done:[];
 player.progress=player.progress&&typeof player.progress==='object'?player.progress:{};
 let game=null;
+let activeCategory='normal';
+
 
 function save(){localStorage.setItem('colorQuest',JSON.stringify(player))}
 function mult(){return brushMult[player.brush-1]}
@@ -94,17 +111,29 @@ function renderBrushList(){
   </div>`;
  }).join('');
 }
+function openBrushModal(){
+ const modal=$('brushModal');
+ if(!modal)return;
+ modal.classList.add('show');
+ modal.setAttribute('aria-hidden','false');
+ renderBrushList();
+}
+function closeBrushModal(){
+ const modal=$('brushModal');
+ if(!modal)return;
+ modal.classList.remove('show');
+ modal.setAttribute('aria-hidden','true');
+}
 const brushOpenBtn=$('brushOpen');
 const brushCloseBtn=$('brushClose');
-if(brushOpenBtn) brushOpenBtn.addEventListener('click',()=>{
-  $('brushModal').classList.add('show');
-  renderBrushList();
+const brushModal=$('brushModal');
+if(brushOpenBtn) brushOpenBtn.addEventListener('click',openBrushModal);
+if(brushCloseBtn) brushCloseBtn.addEventListener('click',(e)=>{e.preventDefault();e.stopPropagation();closeBrushModal();});
+if(brushModal) brushModal.addEventListener('click',(e)=>{
+ if(e.target===brushModal) closeBrushModal();
 });
-if(brushCloseBtn) brushCloseBtn.addEventListener('click',()=>{
-  $('brushModal').classList.remove('show');
-});
-$('brushModal').addEventListener('click',e=>{
-  if(e.target===$('brushModal')) $('brushModal').classList.remove('show');
+document.addEventListener('keydown',(e)=>{
+ if(e.key==='Escape') closeBrushModal();
 });
 
 function renderStats(){
@@ -127,33 +156,79 @@ if(kind==='landscape')return `<rect y="95" width="240" height="55" fill="#6bb7ff
 return `<rect x="20" y="55" width="200" height="90" rx="4" fill="#c7a1e8"/><path d="M15 58L120 15L225 58Z" fill="#8ba8ff"/><rect x="96" y="96" width="48" height="49" fill="#6bb7ff"/><rect x="48" y="82" width="30" height="25" fill="#f7d64a"/><rect x="162" y="82" width="30" height="25" fill="#f7d64a"/>`
 }
 
-function renderHome(){
-$('cards').innerHTML=puzzles.map(p=>{
- const completed=player.done.includes(p.id);
- const unlocked=player.level>=p.unlockAt;
- const saved=!!player.progress[p.id];
- const status=completed
-  ? '<span style="color:#76d59a;font-weight:900">✓ Completed</span>'
-  : !unlocked
-   ? '<span style="color:#8995aa;font-weight:900">🔒 Locked</span>'
-   : saved
-    ? '<span style="color:#ffd45a;font-weight:900">▶ Continue</span>'
-    : '<span style="color:#9eabc2">▶ Start</span>';
- return `<div class="card ${!unlocked?'lockedCard':''}" data-id="${p.id}">
-  <div class="thumb ${!unlocked?'gray':''}">${svgThumb(p.kind)}
-   ${completed?'<div class="check">✓</div>':''}
-   ${!unlocked?'<div class="lockOverlay">🔒</div>':''}
-  </div>
-  <h3>${p.name}</h3><p>Stage ${p.stage} · ${p.regions} regions</p>
-  <p class="reward">Reward ${p.reward} 🪙 × Brush</p><p>${status}</p>
- </div>`;
-}).join('');
-document.querySelectorAll('.card').forEach(c=>c.onclick=()=>{
- const p=puzzles.find(x=>x.id===c.dataset.id);
- if(player.level<p.unlockAt || player.done.includes(p.id))return;
- start(p);
-});
+function weeklyCountdown(week){
+ const now=new Date();
+ const day=now.getDay();
+ const daysToMonday=(8-day)%7 || 7;
+ const target=new Date(now);
+ target.setDate(now.getDate()+daysToMonday+(week-1)*7);
+ target.setHours(0,0,0,0);
+ const ms=Math.max(0,target-now);
+ const d=Math.floor(ms/86400000),h=Math.floor(ms%86400000/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000);
+ return `${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
 }
+function renderHome(){
+ const cards=$('cards');
+ let list=[];
+ if(activeCategory==='weekly'){
+   list=weekly.map((p,i)=>({...p,cat:'weekly',stage:30,unlockAt:30,price:0,
+     available:i===0, countdownWeeks:i}));
+ }else{
+   list=puzzles.filter(p=>p.cat===activeCategory);
+ }
+ cards.innerHTML=list.map(p=>{
+   const completed=player.done.includes(p.id);
+   const unlocked=activeCategory==='weekly' ? player.level>=30 && p.available : player.level>=p.unlockAt;
+   const saved=!!player.progress[p.id];
+   let extra='';
+   if(activeCategory==='weekly'){
+     if(p.available && unlocked) extra='<span style="color:#76d59a;font-weight:900">🟢 Available this week</span>';
+     else extra='<span style="color:#8995aa;font-weight:900">🔒 Opens in '+weeklyCountdown(p.week)+'</span>';
+   }else if(activeCategory==='premium'){
+     extra=`<span style="color:#ffd45a;font-weight:900">💎 Open: ${p.price.toLocaleString()} 🪙</span>`;
+   }
+   const status=completed?'<span style="color:#76d59a;font-weight:900">✓ Completed</span>':!unlocked?'<span style="color:#8995aa;font-weight:900">🔒 Locked</span>':saved?'<span style="color:#ffd45a;font-weight:900">▶ Continue</span>':'<span style="color:#9eabc2">▶ Start</span>';
+   return `<div class="card ${!unlocked?'lockedCard':''}" data-id="${p.id}">
+     <div class="thumb ${!unlocked?'gray':''}">${svgThumb(p.kind)}
+       ${completed?'<div class="check">✓</div>':''}
+       ${!unlocked?'<div class="lockOverlay">🔒</div>':''}
+     </div>
+     <h3>${p.name}</h3>
+     <p>${activeCategory==='weekly'?p.regions+' regions · Free weekly':('Stage '+p.stage+' · '+p.regions+' regions')}</p>
+     <p class="reward">${activeCategory==='premium'?'Reward '+p.reward.toLocaleString()+' 🪙 × Brush':activeCategory==='weekly'?'Reward '+p.reward.toLocaleString()+' 🪙 × Brush':'Reward '+p.reward+' 🪙 × Brush'}</p>
+     <p>${extra}</p><p>${status}</p>
+   </div>`;
+ }).join('');
+
+ document.querySelectorAll('.card').forEach(c=>c.onclick=()=>{
+   const p=(activeCategory==='weekly'?weekly:puzzles).find(x=>x.id===c.dataset.id);
+   if(!p)return;
+   if(activeCategory==='weekly'){
+     if(player.level<30 || p.week!==1 || player.done.includes(p.id))return;
+     startWeekly(p);
+   }else{
+     if(player.level<p.unlockAt || player.done.includes(p.id))return;
+     if(activeCategory==='premium'){
+       if(player.progress[p.id]?.purchased!==true){
+         if(player.coins<p.price){alert('You need '+p.price.toLocaleString()+' Coins to unlock this picture.');return}
+         player.coins-=p.price;
+         player.progress[p.id]={purchased:true};
+         save();
+       }
+     }
+     start(p);
+   }
+ });
+}
+function setupCategoryTabs(){
+ document.querySelectorAll('#categoryTabs .pnum').forEach(btn=>btn.onclick=()=>{
+   activeCategory=btn.dataset.cat;
+   document.querySelectorAll('#categoryTabs .pnum').forEach(x=>x.classList.toggle('active',x===btn));
+   renderHome();
+   renderStats();
+ });
+}
+setupCategoryTabs();
 function show(name){$('home').classList.toggle('active',name==='home');$('game').classList.toggle('active',name==='game')}
 function start(p){
  const saved=player.progress[p.id];
@@ -165,6 +240,24 @@ function start(p){
   let extra=totalCells-base*p.regions;
   for(let n=1;n<=p.regions;n++)counts[n]=base+(n<=extra?1:0);
   game={p,counts,initial:{...counts},current:1,solved:new Set(),regions:makeRegions(p.regions,counts,totalCells)};
+  saveGameProgress();
+ }
+ show('game');draw();renderGame();renderStats();
+}
+
+function startWeekly(p){
+ const saved=player.progress[p.id];
+ const total=p.regions;
+ if(saved){
+  game={p,counts:{...saved.counts},initial:{...saved.initial},current:saved.current||1,solved:new Set(saved.solved||[]),regions:saved.regions,weekly:true};
+ }else{
+  const counts={};
+  const base=Math.floor(total/Math.min(100,total));
+  for(let n=1;n<=100;n++) counts[n]=base;
+  let used=base*100;
+  let n=1;
+  while(used<total){counts[n]++;used++;n=n>=100?1:n+1}
+  game={p,counts,initial:{...counts},current:1,solved:new Set(),regions:makeRegions(100,counts,total),weekly:true};
   saveGameProgress();
  }
  show('game');draw();renderGame();renderStats();
@@ -330,7 +423,12 @@ function saveGameProgress(){
  };
  save();
 }
-function clearGameProgress(id){delete player.progress[id];save();}
+function clearGameProgress(id){
+ const old=player.progress[id];
+ if(old && old.purchased){player.progress[id]={purchased:true};}
+ else delete player.progress[id];
+ save();
+}
 
 function finish(){
   const reward=Math.floor(game.p.reward*mult());
@@ -348,12 +446,13 @@ $('back').onclick=()=>{show('home');renderHome();renderStats()}
 renderHome();renderStats();
 </script>
 
-<div id="brushModal" class="brushModal">
- <div class="brushPanel">
-  <div class="brow"><h2 style="margin:0">🖌️ Brush Upgrades</h2><button id="brushClose" class="back">Close</button></div>
-  <p style="color:#9eabc2">The Brush increases rewards from pictures and other rewards.</p>
+<div id="brushModal" class="brushModal" aria-hidden="true">
+ <div class="brushPanel" role="dialog" aria-modal="true" aria-labelledby="brushTitle">
+  <div class="brow"><h2 id="brushTitle" style="margin:0">🖌️ Brush Upgrades</h2><button id="brushClose" type="button" class="back">Close</button></div>
+  <p style="color:#9eabc2">The Brush increases rewards. Upgrade levels unlock as you progress through stages.</p>
   <div id="brushList"></div>
  </div>
+</div>
 </div>
 </body>
 </html>
