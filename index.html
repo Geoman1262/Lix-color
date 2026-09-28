@@ -39,7 +39,18 @@ function normalReward(i){
  const bands=[[1,5,50,90],[6,10,100,150],[11,20,165,300],[21,30,320,500],[31,40,525,750],[41,50,780,1050],[51,60,1100,1400],[61,70,1450,1800],[71,80,1850,2250],[81,90,2300,2750],[91,100,2800,3300],[101,110,3350,3900],[111,120,3950,4600],[121,130,4650,5400],[131,140,5450,6300],[141,150,6350,7300]];
  for(const [a,b,x,y] of bands)if(i>=a&&i<=b)return Math.round(x+(y-x)*(i-a)/(b-a||1));return 50;
 }
-const S=JSON.parse(localStorage.getItem('lixColorMaster')||localStorage.getItem('lixColorV16')||'null')||{coins:0,stage:1,level:1,brush:1,completed:{},progress:{},premiumOpened:{},weekly:{opened:false,done:false}};
+let S;
+try{S=JSON.parse(localStorage.getItem('lixColorMaster')||localStorage.getItem('lixColorV16')||'null')}catch(e){S=null}
+S=S&&typeof S==='object'?S:{};
+S.coins=Number.isFinite(+S.coins)?+S.coins:0;
+S.stage=Math.max(1,Math.min(150,Number.isFinite(+S.stage)?+S.stage:1));
+S.level=Math.max(1,Number.isFinite(+S.level)?+S.level:Math.floor((S.stage-1)/5)+1);
+S.brush=Math.max(1,Math.min(10,Number.isFinite(+S.brush)?+S.brush:1));
+if(!S.completed||typeof S.completed!=='object')S.completed={};
+if(!S.progress||typeof S.progress!=='object')S.progress={};
+if(!S.premiumOpened||typeof S.premiumOpened!=='object')S.premiumOpened={};
+if(!S.weekly||typeof S.weekly!=='object')S.weekly={};
+S.weekly.opened=!!S.weekly.opened; S.weekly.done=!!S.weekly.done;
 const save=()=>localStorage.setItem('lixColorMaster',JSON.stringify(S)),fmt=n=>Math.round(n).toLocaleString();
 function toast(m){let t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(window.tt);window.tt=setTimeout(()=>t.style.display='none',1700)}
 function head(){let b=BRUSH[S.brush-1];return `<div class="top"><div class="brand">Lix Color</div><div class="coins">🪙 ${fmt(S.coins)}</div><div class="player"><div style="flex:1"><b>Player Level ${S.level}</b><div class="xp"><i style="width:${Math.min(100,(S.stage/150)*100)}%"></i></div><small>Stage ${S.stage} / 150</small></div><div>🖌️ Lv.${S.brush}<br><small>×${b.m}</small></div></div><button class="brushBtn" id="brushBtn">🖌️ Brush Level ${S.brush} · Reward ×${b.m}<span style="float:right">Upgrade ›</span></button></div>`}
@@ -77,7 +88,15 @@ function getPuzzle(cat,id){const key=cat+id;if(PUZZLES[key])return PUZZLES[key];
    cells.push({i:idx,x,y,n:num});idx++;
  }
  const pu={...cfg,p,cells};PUZZLES[key]=pu;return pu}
-function start(cat,id){const pu=getPuzzle(cat,id),key=cat+id,old=S.progress[key]||{done:[],current:1};drawGame({cat,id,key,pu,done:[...(old.done||[])],current:old.current||1})}
+function start(cat,id){
+ try{
+  if(!S.progress||typeof S.progress!=='object')S.progress={};
+  const pu=getPuzzle(cat,id),key=cat+id,old=(S.progress[key]&&typeof S.progress[key]==='object')?S.progress[key]:{done:[],current:1};
+  const done=Array.isArray(old.done)?old.done.filter(Number.isInteger):[];
+  const current=Number.isInteger(+old.current)?+old.current:1;
+  drawGame({cat,id,key,pu,done,current});
+ }catch(err){console.error(err);toast('Play error: '+(err&&err.message?err.message:'unknown'));}
+}
 const COLOR_SETS={
  normal:['#F7F7F2','#DCEAF5','#B9D5E8','#8DB7D0','#5D91AE','#3F6F88','#244B63','#7A9FAF','#AFC6CF','#D7C7A7','#E8E2D2','#FFFFFF'],
  premium:['#FFFDF8','#F5E6C8','#E7C27E','#D9A04E','#B96F2B','#8B3F26','#5B2B5A','#315C7A','#3B7D62','#8BAA4E','#D85B83','#FFFFFF'],
@@ -95,7 +114,16 @@ function drawGame(g){
  document.querySelectorAll('[data-num]').forEach(b=>b.onclick=()=>{let n=+b.dataset.num;if(g.cat!=='weekly'&&n>g.current)return toast('Finish the current number first');g.current=n;persist(g);drawGame(g)});
 }
 function persist(g){S.progress[g.key]={done:g.done,current:g.current};save()}
-function tap(g,c){if(g.done.includes(c.i))return;if(c.n!==g.current)return toast('Wrong number');g.done.push(c.i);persist(g);let rem=g.pu.cells.filter(x=>x.n===g.current&&!g.done.includes(x.i)).length;if(rem===0&&g.cat!=='weekly'){let nx=g.pu.cells.find(x=>!g.done.includes(x.i))?.n;if(nx)g.current=nx}if(g.pu.cells.every(x=>g.done.includes(x.i))){finish(g);return}drawGame(g)}
+function tap(g,c){
+ if(!g||!g.pu||!Array.isArray(g.done)||!c)return;
+ if(g.done.includes(c.i))return;
+ if(c.n!==g.current)return toast('Wrong number');
+ g.done.push(c.i); persist(g);
+ let rem=g.pu.cells.filter(x=>x.n===g.current&&!g.done.includes(x.i)).length;
+ if(rem===0&&g.cat!=='weekly'){let nx=g.pu.cells.find(x=>!g.done.includes(x.i))?.n;if(nx)g.current=nx}
+ if(g.pu.cells.every(x=>g.done.includes(x.i))){finish(g);return}
+ drawGame(g);
+}
 function finish(g){
  let first=!S.completed[g.key],gain=0,m=BRUSH[S.brush-1].m;
  if(g.cat==='normal')gain=first?Math.round(g.p.reward*m):Math.round(g.p.reward*.02);
@@ -103,6 +131,7 @@ function finish(g){
  else if(g.cat==='weekly'){if(!first)return;gain=Math.round(4000*m);S.weekly.opened=false}
  S.coins+=gain;S.completed[g.key]=true;delete S.progress[g.key];if(g.cat==='normal'&&g.id===S.stage)S.stage=Math.min(150,S.stage+1);S.level=Math.max(1,Math.floor((S.stage-1)/5)+1);save();home(g.cat);toast('Completed! +'+fmt(gain)+' Coins')
 }
-window.addEventListener('error',e=>toast('Game error: '+(e.message||'unknown')));
+window.addEventListener('error',e=>{console.error(e);toast('Game error: '+(e.message||'unknown'))});
+save();
 home();
 </script></body></html>
