@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Lix Color Master V20</title>
+<title>Lix Color</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#eef5ff;color:#172033;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
-button{font:inherit;cursor:pointer}.app{max-width:820px;margin:auto;padding:14px}
+button{font:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.app{max-width:820px;margin:auto;padding:14px}
 .top{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center}.brand{font-size:27px;font-weight:950}.coins{background:#fff;border:1px solid #d9e3ef;border-radius:18px;padding:9px 13px;font-weight:900}
 .player{grid-column:1/-1;background:#fff;border:1px solid #d9e3ef;border-radius:16px;padding:10px 12px;display:flex;gap:12px;align-items:center;justify-content:space-between}.xp{height:7px;background:#e5edf6;border-radius:8px;overflow:hidden;margin-top:5px}.xp i{display:block;height:100%;background:#172033}
 .brushBtn{grid-column:1/-1;border:1px solid #d9e3ef;background:#fff;border-radius:15px;padding:11px 13px;text-align:left;font-weight:900}
@@ -66,8 +66,6 @@ function home(cat='normal'){
  document.getElementById('app').innerHTML=head()+`<div class="tabs"><button class="tab ${cat==='normal'?'active':''}" data-tab="normal">Normal</button><button class="tab ${cat==='premium'?'active':''}" data-tab="premium">Premium</button><button class="tab ${cat==='weekly'?'active':''}" data-tab="weekly">Weekly</button></div><div class="grid">${html}</div>`;
  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>home(b.dataset.tab));document.getElementById('brushBtn').onclick=openBrush;
 }
-document.getElementById('app').addEventListener('click',e=>{const b=e.target.closest('button[data-cat]');if(!b || !document.getElementById('app').contains(b))return;e.preventDefault();e.stopPropagation();action(b.dataset.cat,Number(b.dataset.id));},{passive:false});
-window.lixPlay=(cat,id)=>action(cat,Number(id));
 function action(cat,i){
  if(cat==='normal'){if(i>S.stage)return toast('Locked');return start(cat,i)}
  if(cat==='premium'){if(S.stage<15)return toast('Premium unlocks at Stage 15');if(!S.premiumOpened[i]){let c=PREMIUM[i-1];if(S.coins<c)return toast('Not enough Coins');S.coins-=c;S.premiumOpened[i]=true;save();home('premium');return}return start(cat,i)}
@@ -77,59 +75,134 @@ function openBrush(){document.getElementById('modal').innerHTML=`<div class="mod
 function closeModal(){document.getElementById('overlay').style.display='none'}document.getElementById('overlay').onclick=e=>{if(e.target.id==='overlay')closeModal()};
 function buyBrush(l){let b=BRUSH[l-1];if(l<=S.brush||S.stage<b.u)return;if(S.coins<b.c)return toast('Not enough Coins');S.coins-=b.c;S.brush=l;save();closeModal();home();toast('Brush upgraded')}
 
-// V15 mosaic engine: white contiguous square tiles. The source photo is hidden until a tile is correctly painted.
+// Hardened mosaic game engine
 const PUZZLES={};
-function puzzleConfig(cat,id){if(cat==='weekly')return {n:25,groups:300}; if(cat==='premium')return {n:22,groups:180}; if(id<=10)return {n:12,groups:24}; if(id<=30)return {n:15,groups:45}; if(id<=60)return {n:18,groups:72}; if(id<=100)return {n:20,groups:110}; return {n:22,groups:150}}
-function getPuzzle(cat,id){const key=cat+id;if(PUZZLES[key])return PUZZLES[key];const cfg=puzzleConfig(cat,id),p=photoFor(cat,id),cells=[];let idx=0;
- for(let y=0;y<cfg.n;y++)for(let x=0;x<cfg.n;x++){ // deterministic color-number pattern; same number can appear in multiple tiles
-   let num=(idx%cfg.groups)+1;
-   // mix the sequence so adjacent tiles don't all share the same number
-   num=((x*17+y*31+id*7)%cfg.groups)+1;
-   cells.push({i:idx,x,y,n:num});idx++;
- }
- const pu={...cfg,p,cells};PUZZLES[key]=pu;return pu}
+function puzzleConfig(cat,id){
+  if(cat==='weekly') return {n:25,groups:12};
+  if(cat==='premium') return {n:22,groups:12};
+  if(id<=10) return {n:12,groups:8};
+  if(id<=30) return {n:15,groups:10};
+  if(id<=60) return {n:18,groups:12};
+  if(id<=100) return {n:20,groups:12};
+  return {n:22,groups:12};
+}
+function safePhoto(cat,id){
+  try{
+    const p=photoFor(cat,id);
+    if(p && typeof p==='object' && p.url) return p;
+  }catch(e){console.error('photoFor',e)}
+  return {title:(cat==='premium'?'Premium Picture':cat==='weekly'?'Weekly Picture':'Normal Picture'),url:'',reward:normalReward(id)};
+}
+function getPuzzle(cat,id){
+  const key=String(cat)+String(id);
+  if(PUZZLES[key]) return PUZZLES[key];
+  const cfg=puzzleConfig(cat,id), p=safePhoto(cat,id), cells=[];
+  let idx=0;
+  for(let y=0;y<cfg.n;y++) for(let x=0;x<cfg.n;x++){
+    // 12 numbers = 12 fixed colors. Same number always means the same color.
+    const n=((x*5+y*7+id*3)%cfg.groups)+1;
+    cells.push({i:idx,x:x,y:y,n:n}); idx++;
+  }
+  const pu={n:cfg.n,groups:cfg.groups,p:p,cells:cells};
+  PUZZLES[key]=pu;
+  return pu;
+}
+function cleanProgress(cat,id){
+  const key=String(cat)+String(id);
+  let old=null;
+  if(S.progress && typeof S.progress==='object') old=S.progress[key];
+  if(!old || typeof old!=='object') return {done:[],current:1};
+  const done=Array.isArray(old.done)?old.done.map(Number).filter(Number.isFinite):[];
+  return {done:done,current:Number.isFinite(+old.current)?+old.current:1};
+}
 function start(cat,id){
- try{
-  if(!S.progress||typeof S.progress!=='object')S.progress={};
-  const pu=getPuzzle(cat,id),key=cat+id,old=(S.progress[key]&&typeof S.progress[key]==='object')?S.progress[key]:{done:[],current:1};
-  const done=Array.isArray(old.done)?old.done.filter(Number.isInteger):[];
-  const current=Number.isInteger(+old.current)?+old.current:1;
-  drawGame({cat,id,key,pu,done,current});
- }catch(err){console.error(err);toast('Play error: '+(err&&err.message?err.message:'unknown'));}
+  try{
+    id=Number(id);
+    if(!cat || !Number.isFinite(id)) throw new Error('Invalid picture');
+    if(!S.progress || typeof S.progress!=='object') S.progress={};
+    const pu=getPuzzle(cat,id);
+    if(!pu || !Array.isArray(pu.cells) || !pu.p) throw new Error('Picture data unavailable');
+    const old=cleanProgress(cat,id);
+    const validDone=old.done.filter(function(i){return pu.cells.some(function(c){return c.i===i})});
+    let current=old.current;
+    const available=pu.cells.map(function(c){return c.n}).filter(function(n){return !validDone.some(function(i){return pu.cells[i]&&pu.cells[i].n===n})});
+    if(!Number.isFinite(current) || current<1) current=available.length?available[0]:1;
+    drawGame({cat:cat,id:id,key:String(cat)+String(id),pu:pu,done:validDone,current:current});
+  }catch(err){
+    console.error('Lix start error:',err);
+    toast('Play error: '+(err && err.message ? err.message : 'unknown'));
+  }
 }
 const COLOR_SETS={
- normal:['#F7F7F2','#DCEAF5','#B9D5E8','#8DB7D0','#5D91AE','#3F6F88','#244B63','#7A9FAF','#AFC6CF','#D7C7A7','#E8E2D2','#FFFFFF'],
+ normal:['#EAF3F8','#D5E7F0','#B9D5E8','#94BCD0','#6E9FB9','#4D7E98','#315D75','#7B9EAD','#AFC6CF','#D7C7A7','#E8E2D2','#FFFFFF'],
  premium:['#FFFDF8','#F5E6C8','#E7C27E','#D9A04E','#B96F2B','#8B3F26','#5B2B5A','#315C7A','#3B7D62','#8BAA4E','#D85B83','#FFFFFF'],
  weekly:['#F8FBFF','#DCEAF5','#B9D5E8','#8DB7D0','#5D91AE','#3F6F88','#244B63','#7A9FAF','#B8C8A4','#D6D2A8','#8B806C','#FFFFFF']
 };
-function tileColor(cat,n){const base=COLOR_SETS[cat]||COLOR_SETS.normal;if(n<=base.length)return base[n-1];const h=(n*47)%360,s=38+(n%5)*8,l=42+(n%7)*6;return `hsl(${h} ${s}% ${l}%)`}
-function drawGame(g){
- const remaining=g.pu.cells.filter(c=>!g.done.includes(c.i)).length;
- const nums=[...new Set(g.pu.cells.map(c=>c.n))].sort((a,b)=>a-b);
- const ns=nums.map(n=>{let rem=g.pu.cells.filter(c=>c.n===n&&!g.done.includes(c.i)).length;return `<button class="num ${g.current===n?'active':''} ${rem===0?'done':''}" data-num="${n}">${n}<small style="display:block">${rem}</small></button>`}).join('');
- const tiles=g.pu.cells.map(c=>`<button class="tile ${g.done.includes(c.i)?'done':''}" style="${g.done.includes(c.i)?'background:'+tileColor(g.cat,c.n):'background:#fff'}" data-tile="${c.i}"><span>${c.n}</span></button>`).join('');
- document.getElementById('app').innerHTML=`<div class="gameHead"><button class="back" id="gb">← Back</button><div class="count">${g.p.title} · ${g.pu.cells.length-remaining}/${g.pu.cells.length}</div><div class="coins">🪙 ${fmt(S.coins)}</div></div><div class="numbar">${ns}</div><div class="board"><div class="mosaic" style="grid-template-columns:repeat(${g.pu.n},1fr)">${tiles}</div></div><div class="hint">Number ${g.current}: tap the matching squares. Progress saves automatically.</div>`;
- document.getElementById('gb').onclick=()=>{persist(g);home(g.cat)};
- document.querySelectorAll('[data-tile]').forEach(b=>b.onclick=()=>{const c=g.pu.cells[+b.dataset.tile];tap(g,c)});
- document.querySelectorAll('[data-num]').forEach(b=>b.onclick=()=>{let n=+b.dataset.num;if(g.cat!=='weekly'&&n>g.current)return toast('Finish the current number first');g.current=n;persist(g);drawGame(g)});
+function tileColor(cat,n){
+  const base=COLOR_SETS[cat]||COLOR_SETS.normal;
+  return base[(Math.max(1,n)-1)%base.length];
 }
-function persist(g){S.progress[g.key]={done:g.done,current:g.current};save()}
+function drawGame(g){
+  if(!g || !g.pu || !Array.isArray(g.pu.cells)) throw new Error('Invalid puzzle state');
+  const cells=g.pu.cells, done=g.done||[];
+  const doneSet={}; done.forEach(function(i){doneSet[i]=true});
+  const remaining=cells.length-done.length;
+  const nums=[];
+  cells.forEach(function(c){if(nums.indexOf(c.n)<0)nums.push(c.n)});
+  nums.sort(function(a,b){return a-b});
+  let ns='';
+  nums.forEach(function(n){
+    let rem=0; cells.forEach(function(c){if(c.n===n&&!doneSet[c.i])rem++});
+    ns+=`<button type="button" class="num ${g.current===n?'active':''} ${rem===0?'done':''}" data-num="${n}">${n}<small style="display:block">${rem}</small></button>`;
+  });
+  let tiles='';
+  cells.forEach(function(c){
+    const isDone=!!doneSet[c.i];
+    tiles+=`<button type="button" class="tile ${isDone?'done':''}" style="${isDone?'background:'+tileColor(g.cat,c.n):'background:#fff'}" data-tile="${c.i}"><span>${c.n}</span></button>`;
+  });
+  document.getElementById('app').innerHTML=`<div class="gameHead"><button type="button" class="back" id="gb">← Back</button><div class="count">${g.p.title} · ${cells.length-remaining}/${cells.length}</div><div class="coins">🪙 ${fmt(S.coins)}</div></div><div class="numbar">${ns}</div><div class="board"><div class="mosaic" style="grid-template-columns:repeat(${g.pu.n},1fr);grid-template-rows:repeat(${g.pu.n},1fr)">${tiles}</div></div><div class="hint">Number ${g.current}: tap the matching squares. Progress saves automatically.</div>`;
+  const back=document.getElementById('gb');
+  if(back) back.onclick=function(){persist(g);home(g.cat)};
+  document.querySelectorAll('[data-tile]').forEach(function(b){
+    b.onclick=function(){
+      const idx=Number(b.getAttribute('data-tile'));
+      const c=cells[idx];
+      if(c) tap(g,c);
+    };
+  });
+  document.querySelectorAll('[data-num]').forEach(function(b){
+    b.onclick=function(){
+      const n=Number(b.getAttribute('data-num'));
+      if(g.cat!=='weekly' && n>g.current){toast('Finish the current number first');return;}
+      g.current=n; persist(g); drawGame(g);
+    };
+  });
+}
+function persist(g){
+  if(!S.progress || typeof S.progress!=='object') S.progress={};
+  S.progress[g.key]={done:Array.isArray(g.done)?g.done.slice():[],current:Number(g.current)||1};
+  save();
+}
 function tap(g,c){
- if(!g||!g.pu||!Array.isArray(g.done)||!c)return;
- if(g.done.includes(c.i))return;
- if(c.n!==g.current)return toast('Wrong number');
- g.done.push(c.i); persist(g);
- let rem=g.pu.cells.filter(x=>x.n===g.current&&!g.done.includes(x.i)).length;
- if(rem===0&&g.cat!=='weekly'){let nx=g.pu.cells.find(x=>!g.done.includes(x.i))?.n;if(nx)g.current=nx}
- if(g.pu.cells.every(x=>g.done.includes(x.i))){finish(g);return}
- drawGame(g);
+  if(!g || !c || !Array.isArray(g.done)) return;
+  if(g.done.indexOf(c.i)>=0) return;
+  if(c.n!==g.current){toast('Wrong number');return;}
+  g.done.push(c.i); persist(g);
+  let rem=0; g.pu.cells.forEach(function(x){if(x.n===g.current&&g.done.indexOf(x.i)<0)rem++});
+  if(rem===0 && g.cat!=='weekly'){
+    for(let k=0;k<g.pu.cells.length;k++) if(g.done.indexOf(g.pu.cells[k].i)<0){g.current=g.pu.cells[k].n;break;}
+  }
+  if(g.done.length>=g.pu.cells.length){finish(g);return;}
+  drawGame(g);
 }
 function finish(g){
- let first=!S.completed[g.key],gain=0,m=BRUSH[S.brush-1].m;
- if(g.cat==='normal')gain=first?Math.round(g.p.reward*m):Math.round(g.p.reward*.02);
- else if(g.cat==='premium'){if(!first)return;let e=PREMIUM[g.id-1];gain=e+Math.round(e*.2*m)}
- else if(g.cat==='weekly'){if(!first)return;gain=Math.round(4000*m);S.weekly.opened=false}
- S.coins+=gain;S.completed[g.key]=true;delete S.progress[g.key];if(g.cat==='normal'&&g.id===S.stage)S.stage=Math.min(150,S.stage+1);S.level=Math.max(1,Math.floor((S.stage-1)/5)+1);save();home(g.cat);toast('Completed! +'+fmt(gain)+' Coins')
+  const first=!S.completed[g.key], m=BRUSH[S.brush-1].m; let gain=0;
+  if(g.cat==='normal') gain=first?Math.round(g.p.reward*m):Math.round(g.p.reward*.02);
+  else if(g.cat==='premium'){if(!first){home(g.cat);return;}const e=PREMIUM[g.id-1]||0;gain=e+Math.round(e*.2*m)}
+  else if(g.cat==='weekly'){if(!first){home(g.cat);return;}gain=Math.round(4000*m);S.weekly.opened=false}
+  S.coins+=gain; S.completed[g.key]=true; delete S.progress[g.key];
+  if(g.cat==='normal' && g.id===S.stage) S.stage=Math.min(150,S.stage+1);
+  S.level=Math.max(1,Math.floor((S.stage-1)/5)+1); save(); home(g.cat); toast('Completed! +'+fmt(gain)+' Coins');
 }
 window.addEventListener('error',e=>{console.error(e);toast('Game error: '+(e.message||'unknown'))});
 save();
