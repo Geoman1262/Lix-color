@@ -59,13 +59,40 @@ function card(cat,i){
  if(cat==='normal'){open=i<=S.stage;sub=open?(i<S.stage?'Completed':'Reward '+fmt(p.reward)+' Coins'):'Complete Stage '+(i-1);act=open?'Play':'Locked'}
  if(cat==='premium'){open=!!S.premiumOpened[i];sub=S.stage<15?'Unlocks at Stage 15':open?'Unlocked · Entry '+fmt(PREMIUM[i-1]):'Entry '+fmt(PREMIUM[i-1])+' Coins';act=open?'Play':S.stage>=15?'Open':'Locked'}
  if(cat==='weekly'){open=i===1&&S.weekly.opened;sub=S.stage<30?'Unlocks at Stage 30':i===1?(open?'Opened · 3,000 Coins':'3,000 Coins to open'):'Future Week';act=open?'Play':i===1&&S.stage>=30?'Open':'Locked'}
- return `<div class="card ${open?'':'locked'}"><div class="thumb"><img loading="lazy" src="${p.url}" alt="${p.title}" onerror="this.style.background='#eef2f6'">${!open?'<div class="lock">🔒</div>':''}${done?'<div class="badge">✓</div>':''}</div><div class="meta"><div class="title">Stage ${cat==='normal'?i:cat==='premium'?i:i}</div><div class="sub">${p.title}</div><div class="sub">${sub}</div></div><button type="button" class="cardBtn ${open?'open':''}" data-cat="${cat}" data-id="${i}">${act}</button></div>`
+ return `<div class="card ${open?'':'locked'}"><div class="thumb"><img loading="lazy" decoding="async" src="${p.url}" alt="${p.title}" onerror="this.style.background='#eef2f6'">${!open?'<div class="lock">🔒</div>':''}${done?'<div class="badge">✓</div>':''}</div><div class="meta"><div class="title">Stage ${cat==='normal'?i:cat==='premium'?i:i}</div><div class="sub">${p.title}</div><div class="sub">${sub}</div></div><button type="button" class="cardBtn ${open?'open':''}" data-cat="${cat}" data-id="${i}">${act}</button></div>`
 }
+let homeRenderToken=0;
 function home(cat='normal'){
- let max=cat==='normal'?150:cat==='premium'?20:52,html='';for(let i=1;i<=max;i++)html+=card(cat,i);
- document.getElementById('app').innerHTML=head()+`<div class="tabs"><button class="tab ${cat==='normal'?'active':''}" data-tab="normal">Normal</button><button class="tab ${cat==='premium'?'active':''}" data-tab="premium">Premium</button><button class="tab ${cat==='weekly'?'active':''}" data-tab="weekly">Weekly</button></div><div class="grid">${html}</div>`;
- document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>home(b.dataset.tab));document.getElementById('brushBtn').onclick=openBrush;
+ const token=++homeRenderToken;
+ const app=document.getElementById('app');
+ const max=cat==='normal'?150:cat==='premium'?20:52;
+ app.innerHTML=head()+`<div class="tabs"><button class="tab ${cat==='normal'?'active':''}" data-tab="normal">Normal</button><button class="tab ${cat==='premium'?'active':''}" data-tab="premium">Premium</button><button class="tab ${cat==='weekly'?'active':''}" data-tab="weekly">Weekly</button></div><div id="cardsGrid" class="grid"></div>`;
+ const grid=document.getElementById('cardsGrid');
+ const renderChunk=()=>{
+   if(token!==homeRenderToken) return;
+   const start=grid.children.length+1;
+   if(start>max) return;
+   const frag=document.createDocumentFragment();
+   const end=Math.min(max,start+17);
+   for(let i=start;i<=end;i++){ const wrap=document.createElement('div'); wrap.innerHTML=card(cat,i); frag.appendChild(wrap.firstElementChild); }
+   grid.appendChild(frag);
+   requestAnimationFrame(renderChunk);
+ };
+ requestAnimationFrame(renderChunk);
+ document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>home(b.dataset.tab));
+ document.getElementById('brushBtn').onclick=openBrush;
 }
+
+// One delegated handler for every Play/Open button. This avoids attaching 150+ handlers
+// and fixes the previous no-response Play bug.
+document.getElementById('app').addEventListener('click', function(e){
+ const btn=e.target.closest('[data-cat]');
+ if(!btn) return;
+ const cat=btn.getAttribute('data-cat');
+ const id=Number(btn.getAttribute('data-id'));
+ if(!cat || !Number.isFinite(id)) return;
+ action(cat,id);
+});
 function action(cat,i){
  if(cat==='normal'){if(i>S.stage)return toast('Locked');return start(cat,i)}
  if(cat==='premium'){if(S.stage<15)return toast('Premium unlocks at Stage 15');if(!S.premiumOpened[i]){let c=PREMIUM[i-1];if(S.coins<c)return toast('Not enough Coins');S.coins-=c;S.premiumOpened[i]=true;save();home('premium');return}return start(cat,i)}
